@@ -1,15 +1,15 @@
 # FetchContent was added to 3.14.
 cmake_minimum_required(VERSION 3.14...3.31)
 
-# Compile all subdirectories with the same standard.
-set(CMAKE_CXX_STANDARD 20)
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_CXX_EXTENSIONS OFF)
-
 project(WayArc
   LANGUAGES C CXX
   DESCRIPTION "Wayland Compositor inspired by fluxbox."
 )
+
+# Compile all subdirectories with the same standard.
+set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 #==============================================================================
 # Begin of gitache configuration.
@@ -26,12 +26,12 @@ set(GITACHE_PACKAGES libcwd_r)
 #  list(APPEND GITACHE_PACKAGES farmhash)
 #endif()
 
-include(gitache/gateway.cmake)
+include(cwm4/cmake/StableGitache)
 # End of gitache configuration.
 
 #==============================================================================
 # This project uses aicxx modules.
-include(cwm4/cmake/AICxxProject)
+include(cwm4/cmake/AICxxProject NO_POLICY_SCOPE)
 
 #==============================================================================
 # OPTIONS
@@ -60,7 +60,7 @@ endif ()
 include(AICxxSubmodules)
 
 # Extra clean up before removing directories.
-add_custom_target(maintainer-clean-extra
+add_custom_target(WayArc-maintainer-clean-extra
   COMMAND rm -f CMakeDoxygenDefaults.cmake CMakeDoxyfile.in
 )
 
