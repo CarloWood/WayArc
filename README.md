@@ -3,7 +3,7 @@ window management of Fluxbox, with a focus on robust C++20 design
 principles—emphasizing encapsulation, type-safety, and maintainability—while
 still being a work in progress.
 
-SETTING UP THE BUILD ENVIRONMENT
+Setting Up The Build Environment
 ================================
 
 On Archlinux you need to following packages:
@@ -59,15 +59,27 @@ Using the directory name of where you cloned this project. Namely, the repositor
 
 After all of this is set up, you can continue with getting the source code, configuration and compilation:
 
-GETTING THE SOURCE CODE
+Getting The Source Code
 =======================
 
 ```
   git clone --recursive https://github.com/CarloWood/WayArc.git
   cd WayArc
   ./autogen.sh
-  cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug -DCMAKE_VERBOSE_MAKEFILE=ON
-  cmake --build build --config Debug --parallel $(nproc --all)
-  cd build/src
+```
+
+At the end that prints configuration and build hints, for example,
+
+```
+  mkdir ../WayArc-build
+  cmake -S "." -B "../WayArc-build" -DCMAKE_BUILD_TYPE="Debug" -GNinja -DCMAKE_VERBOSE_MAKEFILE=ON -DCMAKE_MESSAGE_LOG_LEVEL=DEBUG
+  cmake --build ../WayArc-build --config Debug --parallel 16
+```
+
+Running The Compositor
+======================
+
+```
+  cd ../WayArc-build/src
   ./WayArc
 ```
