@@ -64,6 +64,9 @@ add_custom_target(WayArc-maintainer-clean-extra
   COMMAND rm -f CMakeDoxygenDefaults.cmake CMakeDoxyfile.in
 )
 
+# Get pkg_check_modules and pkg_get_variable.
+find_package(PkgConfig REQUIRED)
+
 #add_subdirectory(filelock-task)
 #add_subdirectory(resolver-task)
 #add_subdirectory(socket-task)
