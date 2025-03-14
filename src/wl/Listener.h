@@ -2,6 +2,7 @@
 
 #include "utils/has_print_on.h"
 #include "utils/print_pointer.h"
+#include "events/Events.h"
 #include <wayland-server-core.h>
 #include <utility>
 
@@ -16,10 +17,13 @@ class EventType
   static constexpr bool one_shot = false;
 
  private:
-  Data const* data_;
+  Data* data_;
 
  public:
-  EventType(Data const* data) : data_(data) { }
+  EventType(Data* data) : data_(data) { }
+
+  Data* operator->() const { return data_; }
+  operator Data*() const { return data_; }
 
 #ifdef CWDEBUG
   void print_on(std::ostream& os) const;
@@ -46,6 +50,7 @@ class Listener : protected SignalServerListener, public events::Server<EventType
 {
  public:
   using event_type_t = EventType<Data>;
+  using handle_t = events::RequestHandle<event_type_t>;
 
  private:
   wl_signal* signal_ptr_{};
