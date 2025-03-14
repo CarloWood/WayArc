@@ -1,10 +1,6 @@
 include(AICxxProject)
 
 #==============================================================================
-# Check for required dependencies.
-pkg_check_modules(WaylandDeps REQUIRED IMPORTED_TARGET "wlroots-0.19" wayland-server xkbcommon pixman-1)
-
-#==============================================================================
 # Generate XDG_SHELL_PROTOCOL_H
 
 set(XDG_SHELL_PROTOCOL_H "${CMAKE_CURRENT_BINARY_DIR}/xdg-shell-protocol.h")
@@ -56,8 +52,8 @@ add_executable(tinywl++ tinywl.cpp wlr/Scene.cxx)
 add_dependencies(tinywl++ xdg-shell-protocol)
 target_link_libraries(tinywl++
   PRIVATE
-    PkgConfig::WaylandDeps
     ${AICXX_OBJECTS_LIST}
+    PkgConfig::WaylandDeps
 )
 
 # Required define when using the unstable (git) version of wlroots.
@@ -73,8 +69,8 @@ add_executable(WayArc WayArc.cxx)
 add_dependencies(WayArc xdg-shell-protocol)
 target_link_libraries(WayArc
   PRIVATE
-    PkgConfig::WaylandDeps
     ${AICXX_OBJECTS_LIST}
+    PkgConfig::WaylandDeps
 )
 
 # Required define when using the unstable (git) version of wlroots.

@@ -67,6 +67,10 @@ add_custom_target(WayArc-maintainer-clean-extra
 # Get pkg_check_modules and pkg_get_variable.
 find_package(PkgConfig REQUIRED)
 
+#==============================================================================
+# Check for required dependencies.
+pkg_check_modules(WaylandDeps REQUIRED IMPORTED_TARGET "wlroots-0.19" wayland-server xkbcommon pixman-1)
+
 #add_subdirectory(filelock-task)
 #add_subdirectory(resolver-task)
 #add_subdirectory(socket-task)
@@ -76,3 +80,4 @@ find_package(PkgConfig REQUIRED)
 #add_subdirectory(block-task)
 
 add_subdirectory(src)
+add_subdirectory(tests)
