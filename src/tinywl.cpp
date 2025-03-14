@@ -39,6 +39,14 @@ extern "C" {
 #undef wl_container_of
 #define wl_container_of(...) nullptr
 
+using new_input_listener_t = wl::Listener<struct wlr_input_device>;
+
+std::ostream& operator<<(std::ostream& os, struct wlr_input_device const& input_device)
+{
+  os << "TODO: print wlr_input_device";
+  return os;
+}
+
 /* For brevity's sake, struct members are annotated where they are used. */
 enum tinywl_cursor_mode {
 	TINYWL_CURSOR_PASSTHROUGH,
@@ -68,7 +76,10 @@ struct tinywl_server {
 	struct wl_listener cursor_frame;
 
 	struct wlr_seat *seat;
-        wl::Listener new_input_;
+
+        new_input_listener_t new_input_;
+        new_input_listener_t::handle_t new_input_handle_;
+
 	struct wl_listener request_cursor;
 	struct wl_listener request_set_selection;
 	struct wl_list keyboards;
@@ -83,7 +94,7 @@ struct tinywl_server {
 	struct wl_listener new_output;
 
         // Callback for new_input_.
-        void new_input(struct wlr_input_device* device);
+        void new_input(new_input_listener_t::event_type_t const& device);
 };
 
 struct tinywl_output {
@@ -309,27 +320,27 @@ static void server_new_pointer(struct tinywl_server *server,
 	wlr_cursor_attach_input_device(server->cursor, device);
 }
 
-void tinywl_server::new_input(struct wlr_input_device* device) {
-	/* This event is raised by the backend when a new input device becomes
-	 * available. */
-	switch (device->type) {
-	case WLR_INPUT_DEVICE_KEYBOARD:
-		server_new_keyboard(this, device);
-		break;
-	case WLR_INPUT_DEVICE_POINTER:
-		server_new_pointer(this, device);
-		break;
-	default:
-		break;
-	}
-	/* We need to let the wlr_seat know what our capabilities are, which is
-	 * communiciated to the client. In TinyWL we always have a cursor, even if
-	 * there are no pointer devices, so we always include that capability. */
-	uint32_t caps = WL_SEAT_CAPABILITY_POINTER;
-	if (!wl_list_empty(&keyboards)) {
-		caps |= WL_SEAT_CAPABILITY_KEYBOARD;
-	}
-	wlr_seat_set_capabilities(seat, caps);
+void tinywl_server::new_input(new_input_listener_t::event_type_t const& device)
+{
+  /* This event is raised by the backend when a new input device becomes available. */
+  switch (device->type)
+  {
+    case WLR_INPUT_DEVICE_KEYBOARD:
+      server_new_keyboard(this, device);
+      break;
+    case WLR_INPUT_DEVICE_POINTER:
+      server_new_pointer(this, device);
+      break;
+    default:
+      break;
+  }
+  /* We need to let the wlr_seat know what our capabilities are, which is
+   * communiciated to the client. In TinyWL we always have a cursor, even if
+   * there are no pointer devices, so we always include that capability. */
+  uint32_t caps = WL_SEAT_CAPABILITY_POINTER;
+  if (!wl_list_empty(&keyboards))
+    caps |= WL_SEAT_CAPABILITY_KEYBOARD;
+  wlr_seat_set_capabilities(seat, caps);
 }
 
 static void seat_request_cursor(struct wl_listener *listener, void *data) {
@@ -1052,7 +1063,10 @@ int main(int argc, char *argv[]) {
 	 */
 	wl_list_init(&server.keyboards);
 
-        //server.new_input_.register_with(server.backend->events.new_input, &server.new_input);
+        // Initialize the server.new_input_ listener.
+        server.new_input_.init(&server.backend->events.new_input);
+        // Request a callback to server.new_input upon the new_input_ event.
+        server.new_input_handle_ = server.new_input_.request(server, &tinywl_server::new_input);
 
 	server.seat = wlr_seat_create(server.wl_display, "seat0");
 	server.request_cursor.notify = seat_request_cursor;
