@@ -42,7 +42,7 @@ void EventType<Data>::print_on(std::ostream& os) const
 
 struct SignalServerListener
 {
-  wl_listener listener_;
+  wl_listener listener_{};
 };
 
 template<typename Data>
@@ -58,6 +58,7 @@ class Listener : protected SignalServerListener, public events::Server<EventType
  public:
   Listener() = default;
   Listener(wl_signal* signal_ptr) { init(); }
+  ~Listener();
 
   void init(wl_signal* signal_ptr);
 
@@ -72,6 +73,13 @@ void Listener<Data>::init(wl_signal* signal_ptr)
 
   listener_.notify = &Listener<Data>::callback_;
   wl_signal_add(signal_ptr_, &listener_);
+}
+
+template<typename Data>
+Listener<Data>::~Listener()
+{
+  if (listener_.link.prev != nullptr)   // Was init() called?
+    wl_list_remove(&listener_.link);
 }
 
 //static

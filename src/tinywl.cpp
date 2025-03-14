@@ -39,11 +39,81 @@ extern "C" {
 #undef wl_container_of
 #define wl_container_of(...) nullptr
 
+using new_xdg_toplevel_listener_t = wl::Listener<struct wlr_xdg_toplevel>;
 using new_input_listener_t = wl::Listener<struct wlr_input_device>;
+using new_xdg_popup_listener_t = wl::Listener<struct wlr_xdg_popup>;
+using cursor_motion_listener_t = wl::Listener<struct wlr_pointer_motion_event>;
+using cursor_motion_absolute_listener_t = wl::Listener<struct wlr_pointer_motion_absolute_event>;
+using cursor_button_listener_t = wl::Listener<struct wlr_pointer_button_event>;
+using cursor_axis_listener_t = wl::Listener<struct wlr_pointer_axis_event>;
+using cursor_frame_listener_t = wl::Listener<struct wlr_cursor>;
+using seat_request_cursor_listener_t = wl::Listener<struct wlr_seat_pointer_request_set_cursor_event>;
+using seat_request_set_selection_listener_t = wl::Listener<struct wlr_seat_request_set_selection_event>;
+using new_output_listener_t = wl::Listener<struct wlr_output>;
+
+std::ostream& operator<<(std::ostream& os, struct wlr_xdg_toplevel const& xdg_toplevel)
+{
+  os << "TODO: print wlr_xdg_toplevel";
+  return os;
+}
 
 std::ostream& operator<<(std::ostream& os, struct wlr_input_device const& input_device)
 {
   os << "TODO: print wlr_input_device";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_xdg_popup const& xdg_popup)
+{
+  os << "TODO: print wlr_xdg_popup";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_pointer_motion_event const& motion_event)
+{
+  os << "TODO: print wlr_pointer_motion_event";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_pointer_motion_absolute_event const& motion_absolute_event)
+{
+  os << "TODO: print wlr_pointer_motion_absolute_event";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_pointer_button_event const& button_event)
+{
+  os << "TODO: print wlr_pointer_button_event";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_pointer_axis_event const& axis_event)
+{
+  os << "TODO: print wlr_pointer_axis_event";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_cursor const& cursor)
+{
+  os << "TODO: print wlr_cursor";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_seat_pointer_request_set_cursor_event const& seat_request_cursor_event)
+{
+  os << "TODO: print wlr_seat_pointer_request_set_cursor_event";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_seat_request_set_selection_event const& request_selection_event)
+{
+  os << "TODO: print wlr_seat_request_set_selection_event";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_output const& output)
+{
+  os << "TODO: print wlr_output";
   return os;
 }
 
@@ -54,47 +124,89 @@ enum tinywl_cursor_mode {
 	TINYWL_CURSOR_RESIZE,
 };
 
-struct tinywl_server {
-	struct wl_display *wl_display;
-	struct wlr_backend *backend;
-	struct wlr_renderer *renderer;
-	struct wlr_allocator *allocator;
-        wlr::Scene scene_;
-	struct wlr_scene_output_layout *scene_layout;
+struct tinywl_server
+{
+  struct wl_display *wl_display;
+  struct wlr_backend *backend;
+  struct wlr_renderer *renderer;
+  struct wlr_allocator *allocator;
+  wlr::Scene scene_;
+  struct wlr_scene_output_layout *scene_layout;
 
-	struct wlr_xdg_shell *xdg_shell;
-	struct wl_listener new_xdg_toplevel;
-	struct wl_listener new_xdg_popup;
-	struct wl_list toplevels;
+  struct wlr_xdg_shell *xdg_shell;
 
-	struct wlr_cursor *cursor;
-	struct wlr_xcursor_manager *cursor_mgr;
-	struct wl_listener cursor_motion;
-	struct wl_listener cursor_motion_absolute;
-	struct wl_listener cursor_button;
-	struct wl_listener cursor_axis;
-	struct wl_listener cursor_frame;
+  new_xdg_toplevel_listener_t new_xdg_toplevel_;
+  new_xdg_toplevel_listener_t::handle_t new_xdg_toplevel_handle_;
 
-	struct wlr_seat *seat;
+  new_xdg_popup_listener_t new_xdg_popup_;
+  new_xdg_popup_listener_t::handle_t new_xdg_popup_handle_;
 
-        new_input_listener_t new_input_;
-        new_input_listener_t::handle_t new_input_handle_;
+  struct wl_list toplevels;
 
-	struct wl_listener request_cursor;
-	struct wl_listener request_set_selection;
-	struct wl_list keyboards;
-	enum tinywl_cursor_mode cursor_mode;
-	struct tinywl_toplevel *grabbed_toplevel;
-	double grab_x, grab_y;
-	struct wlr_box grab_geobox;
-	uint32_t resize_edges;
+  struct wlr_cursor *cursor;
+  struct wlr_xcursor_manager *cursor_mgr;
 
-	struct wlr_output_layout *output_layout;
-	struct wl_list outputs;
-	struct wl_listener new_output;
+  cursor_motion_listener_t cursor_motion_;
+  cursor_motion_listener_t::handle_t cursor_motion_handle_;
 
-        // Callback for new_input_.
-        void new_input(new_input_listener_t::event_type_t const& device);
+  cursor_motion_absolute_listener_t cursor_motion_absolute_;
+  cursor_motion_absolute_listener_t::handle_t cursor_motion_absolute_handle_;
+
+  cursor_button_listener_t cursor_button_;
+  cursor_button_listener_t::handle_t cursor_button_handle_;
+
+  cursor_axis_listener_t cursor_axis_;
+  cursor_axis_listener_t::handle_t cursor_axis_handle_;
+
+  cursor_frame_listener_t cursor_frame_;
+  cursor_frame_listener_t::handle_t cursor_frame_handle_;
+
+  struct wlr_seat *seat;
+
+  new_input_listener_t new_input_;
+  new_input_listener_t::handle_t new_input_handle_;
+
+  seat_request_cursor_listener_t seat_request_cursor_;
+  seat_request_cursor_listener_t::handle_t seat_request_cursor_handle_;
+
+  seat_request_set_selection_listener_t seat_request_set_selection_;
+  seat_request_set_selection_listener_t::handle_t seat_request_set_selection_handle_;
+
+  struct wl_list keyboards;
+  enum tinywl_cursor_mode cursor_mode;
+  struct tinywl_toplevel *grabbed_toplevel;
+  double grab_x, grab_y;
+  struct wlr_box grab_geobox;
+  uint32_t resize_edges;
+
+  struct wlr_output_layout *output_layout;
+  struct wl_list outputs;
+
+  new_output_listener_t new_output_;
+  new_output_listener_t::handle_t new_output_handle_;
+
+  // Callback for new_xdg_toplevel_.
+  void new_xdg_toplevel(new_xdg_toplevel_listener_t::event_type_t const& xdg_toplevel);
+  // Callback for new_input_.
+  void new_input(new_input_listener_t::event_type_t const& device);
+  // Callback for new_xdg_popup_.
+  void new_xdg_popup(new_xdg_popup_listener_t::event_type_t const& xdg_popup);
+  // Callback for cursor_motion_.
+  void cursor_motion(cursor_motion_listener_t::event_type_t const& event);
+  // Callback for cursor_motion_absolute_.
+  void cursor_motion_absolute(cursor_motion_absolute_listener_t::event_type_t const& event);
+  // Callback for cursor_button_.
+  void cursor_button(cursor_button_listener_t::event_type_t const& event);
+  // Callback for cursor_axis_.
+  void cursor_axis(cursor_axis_listener_t::event_type_t const& event);
+  // Callback for cursor_frame_.
+  void cursor_frame(cursor_frame_listener_t::event_type_t const& data);
+  // Callback for seat_request_cursor_.
+  void seat_request_cursor(seat_request_cursor_listener_t::event_type_t const& event);
+  // Callback for seat_request_set_selection_.
+  void seat_request_set_selection(seat_request_set_selection_listener_t::event_type_t const& event);
+  // Callback for new_output_.
+  void new_output(new_output_listener_t::event_type_t const& output);
 };
 
 struct tinywl_output {
@@ -343,34 +455,29 @@ void tinywl_server::new_input(new_input_listener_t::event_type_t const& device)
   wlr_seat_set_capabilities(seat, caps);
 }
 
-static void seat_request_cursor(struct wl_listener *listener, void *data) {
-	struct tinywl_server *server = wl_container_of(
-			listener, server, request_cursor);
-	/* This event is raised by the seat when a client provides a cursor image */
-	struct wlr_seat_pointer_request_set_cursor_event *event = (struct wlr_seat_pointer_request_set_cursor_event *)data;
-	struct wlr_seat_client *focused_client =
-		server->seat->pointer_state.focused_client;
-	/* This can be sent by any client, so we check to make sure this one is
-	 * actually has pointer focus first. */
-	if (focused_client == event->seat_client) {
-		/* Once we've vetted the client, we can tell the cursor to use the
-		 * provided surface as the cursor image. It will set the hardware cursor
-		 * on the output that it's currently on and continue to do so as the
-		 * cursor moves between outputs. */
-		wlr_cursor_set_surface(server->cursor, event->surface,
-				event->hotspot_x, event->hotspot_y);
-	}
+void tinywl_server::seat_request_cursor(seat_request_cursor_listener_t::event_type_t const& event)
+{
+  /* This event is raised by the seat when a client provides a cursor image */
+  struct wlr_seat_client *focused_client = seat->pointer_state.focused_client;
+  /* This can be sent by any client, so we check to make sure this one is
+   * actually has pointer focus first. */
+  if (focused_client == event->seat_client) {
+    /* Once we've vetted the client, we can tell the cursor to use the
+     * provided surface as the cursor image. It will set the hardware cursor
+     * on the output that it's currently on and continue to do so as the
+     * cursor moves between outputs. */
+    wlr_cursor_set_surface(cursor, event->surface,
+        event->hotspot_x, event->hotspot_y);
+  }
 }
 
-static void seat_request_set_selection(struct wl_listener *listener, void *data) {
-	/* This event is raised by the seat when a client wants to set the selection,
-	 * usually when the user copies something. wlroots allows compositors to
-	 * ignore such requests if they so choose, but in tinywl we always honor
-	 */
-	struct tinywl_server *server = wl_container_of(
-			listener, server, request_set_selection);
-	struct wlr_seat_request_set_selection_event *event = (struct wlr_seat_request_set_selection_event *)data;
-	wlr_seat_set_selection(server->seat, event->source, event->serial);
+void tinywl_server::seat_request_set_selection(seat_request_set_selection_listener_t::event_type_t const& event)
+{
+  /* This event is raised by the seat when a client wants to set the selection,
+   * usually when the user copies something. wlroots allows compositors to
+   * ignore such requests if they so choose, but in tinywl we always honor
+   */
+  wlr_seat_set_selection(seat, event->source, event->serial);
 }
 
 static struct tinywl_toplevel *desktop_toplevel_at(
@@ -516,625 +623,614 @@ static void process_cursor_motion(struct tinywl_server *server, uint32_t time) {
 	}
 }
 
-static void server_cursor_motion(struct wl_listener *listener, void *data) {
-	/* This event is forwarded by the cursor when a pointer emits a _relative_
-	 * pointer motion event (i.e. a delta) */
-	struct tinywl_server *server =
-		wl_container_of(listener, server, cursor_motion);
-	struct wlr_pointer_motion_event *event = (struct wlr_pointer_motion_event *)data;
-	/* The cursor doesn't move unless we tell it to. The cursor automatically
-	 * handles constraining the motion to the output layout, as well as any
-	 * special configuration applied for the specific input device which
-	 * generated the event. You can pass NULL for the device if you want to move
-	 * the cursor around without any input. */
-	wlr_cursor_move(server->cursor, &event->pointer->base,
-			event->delta_x, event->delta_y);
-	process_cursor_motion(server, event->time_msec);
+void tinywl_server::cursor_motion(cursor_motion_listener_t::event_type_t const& event)
+{
+  /* This event is forwarded by the cursor when a pointer emits a _relative_
+   * pointer motion event (i.e. a delta) */
+  /* The cursor doesn't move unless we tell it to. The cursor automatically
+   * handles constraining the motion to the output layout, as well as any
+   * special configuration applied for the specific input device which
+   * generated the event. You can pass NULL for the device if you want to move
+   * the cursor around without any input. */
+  wlr_cursor_move(cursor, &event->pointer->base,
+      event->delta_x, event->delta_y);
+  process_cursor_motion(this, event->time_msec);
 }
 
-static void server_cursor_motion_absolute(
-		struct wl_listener *listener, void *data) {
-	/* This event is forwarded by the cursor when a pointer emits an _absolute_
-	 * motion event, from 0..1 on each axis. This happens, for example, when
-	 * wlroots is running under a Wayland window rather than KMS+DRM, and you
-	 * move the mouse over the window. You could enter the window from any edge,
-	 * so we have to warp the mouse there. There is also some hardware which
-	 * emits these events. */
-	struct tinywl_server *server =
-		wl_container_of(listener, server, cursor_motion_absolute);
-	struct wlr_pointer_motion_absolute_event *event = (struct wlr_pointer_motion_absolute_event *)data;
-	wlr_cursor_warp_absolute(server->cursor, &event->pointer->base, event->x,
-		event->y);
-	process_cursor_motion(server, event->time_msec);
+void tinywl_server::cursor_motion_absolute(cursor_motion_absolute_listener_t::event_type_t const& event)
+{
+  /* This event is forwarded by the cursor when a pointer emits an _absolute_
+   * motion event, from 0..1 on each axis. This happens, for example, when
+   * wlroots is running under a Wayland window rather than KMS+DRM, and you
+   * move the mouse over the window. You could enter the window from any edge,
+   * so we have to warp the mouse there. There is also some hardware which
+   * emits these events. */
+  wlr_cursor_warp_absolute(cursor, &event->pointer->base, event->x,
+    event->y);
+  process_cursor_motion(this, event->time_msec);
 }
 
-static void server_cursor_button(struct wl_listener *listener, void *data) {
-	/* This event is forwarded by the cursor when a pointer emits a button
-	 * event. */
-	struct tinywl_server *server =
-		wl_container_of(listener, server, cursor_button);
-	struct wlr_pointer_button_event *event = (struct wlr_pointer_button_event *)data;
-	/* Notify the client with pointer focus that a button press has occurred */
-	wlr_seat_pointer_notify_button(server->seat,
-			event->time_msec, event->button, event->state);
-	if (event->state == WL_POINTER_BUTTON_STATE_RELEASED) {
-		/* If you released any buttons, we exit interactive move/resize mode. */
-		reset_cursor_mode(server);
-	} else {
-		/* Focus that client if the button was _pressed_ */
-		double sx, sy;
-		struct wlr_surface *surface = NULL;
-		struct tinywl_toplevel *toplevel = desktop_toplevel_at(server,
-				server->cursor->x, server->cursor->y, &surface, &sx, &sy);
-		focus_toplevel(toplevel);
-	}
+void tinywl_server::cursor_button(cursor_button_listener_t::event_type_t const& event)
+{
+  /* This event is forwarded by the cursor when a pointer emits a button
+   * event. */
+  /* Notify the client with pointer focus that a button press has occurred */
+  wlr_seat_pointer_notify_button(seat,
+      event->time_msec, event->button, event->state);
+  if (event->state == WL_POINTER_BUTTON_STATE_RELEASED) {
+    /* If you released any buttons, we exit interactive move/resize mode. */
+    reset_cursor_mode(this);
+  } else {
+    /* Focus that client if the button was _pressed_ */
+    double sx, sy;
+    struct wlr_surface *surface = NULL;
+    struct tinywl_toplevel *toplevel = desktop_toplevel_at(this,
+        cursor->x, cursor->y, &surface, &sx, &sy);
+    focus_toplevel(toplevel);
+  }
 }
 
-static void server_cursor_axis(struct wl_listener *listener, void *data) {
-	/* This event is forwarded by the cursor when a pointer emits an axis event,
-	 * for example when you move the scroll wheel. */
-	struct tinywl_server *server =
-		wl_container_of(listener, server, cursor_axis);
-	struct wlr_pointer_axis_event *event = (struct wlr_pointer_axis_event *)data;
-	/* Notify the client with pointer focus of the axis event. */
-	wlr_seat_pointer_notify_axis(server->seat,
-			event->time_msec, event->orientation, event->delta,
-			event->delta_discrete, event->source, event->relative_direction);
+void tinywl_server::cursor_axis(cursor_axis_listener_t::event_type_t const& event)
+{
+  /* This event is forwarded by the cursor when a pointer emits an axis event,
+   * for example when you move the scroll wheel. */
+  /* Notify the client with pointer focus of the axis event. */
+  wlr_seat_pointer_notify_axis(seat,
+      event->time_msec, event->orientation, event->delta,
+      event->delta_discrete, event->source, event->relative_direction);
 }
 
-static void server_cursor_frame(struct wl_listener *listener, void *data) {
-	/* This event is forwarded by the cursor when a pointer emits an frame
-	 * event. Frame events are sent after regular pointer events to group
-	 * multiple events together. For instance, two axis events may happen at the
-	 * same time, in which case a frame event won't be sent in between. */
-	struct tinywl_server *server =
-		wl_container_of(listener, server, cursor_frame);
-	/* Notify the client with pointer focus of the frame event. */
-	wlr_seat_pointer_notify_frame(server->seat);
+void tinywl_server::cursor_frame(cursor_frame_listener_t::event_type_t const& data)
+{
+  /* This event is forwarded by the cursor when a pointer emits an frame
+   * event. Frame events are sent after regular pointer events to group
+   * multiple events together. For instance, two axis events may happen at the
+   * same time, in which case a frame event won't be sent in between. */
+  /* Notify the client with pointer focus of the frame event. */
+  wlr_seat_pointer_notify_frame(seat);
 }
 
 static void output_frame(struct wl_listener *listener, void *data) {
-	/* This function is called every time an output is ready to display a frame,
-	 * generally at the output's refresh rate (e.g. 60Hz). */
-	struct tinywl_output *output = wl_container_of(listener, output, frame);
+  /* This function is called every time an output is ready to display a frame,
+   * generally at the output's refresh rate (e.g. 60Hz). */
+  struct tinywl_output *output = wl_container_of(listener, output, frame);
 #if 0 // FIXME: we don't have `output->server->scene`.
-	struct wlr_scene *scene = output->server->scene;
+  struct wlr_scene *scene = output->server->scene;
 
-	struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(
-		scene, output->wlr_output);
+  struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(
+    scene, output->wlr_output);
 
-	/* Render the scene if needed and commit the output */
-	wlr_scene_output_commit(scene_output, NULL);
+  /* Render the scene if needed and commit the output */
+  wlr_scene_output_commit(scene_output, NULL);
 
-	struct timespec now;
-	clock_gettime(CLOCK_MONOTONIC, &now);
-	wlr_scene_output_send_frame_done(scene_output, &now);
+  struct timespec now;
+  clock_gettime(CLOCK_MONOTONIC, &now);
+  wlr_scene_output_send_frame_done(scene_output, &now);
 #endif
 }
 
 static void output_request_state(struct wl_listener *listener, void *data) {
-	/* This function is called when the backend requests a new state for
-	 * the output. For example, Wayland and X11 backends request a new mode
-	 * when the output window is resized. */
-	struct tinywl_output *output = wl_container_of(listener, output, request_state);
-	const struct wlr_output_event_request_state *event = (const struct wlr_output_event_request_state *)data;
-	wlr_output_commit_state(output->wlr_output, event->state);
+  /* This function is called when the backend requests a new state for
+   * the output. For example, Wayland and X11 backends request a new mode
+   * when the output window is resized. */
+  struct tinywl_output *output = wl_container_of(listener, output, request_state);
+  const struct wlr_output_event_request_state *event = (const struct wlr_output_event_request_state *)data;
+  wlr_output_commit_state(output->wlr_output, event->state);
 }
 
 static void output_destroy(struct wl_listener *listener, void *data) {
-	struct tinywl_output *output = wl_container_of(listener, output, destroy);
+  struct tinywl_output *output = wl_container_of(listener, output, destroy);
 
-	wl_list_remove(&output->frame.link);
-	wl_list_remove(&output->request_state.link);
-	wl_list_remove(&output->destroy.link);
-	wl_list_remove(&output->link);
-	free(output);
+  wl_list_remove(&output->frame.link);
+  wl_list_remove(&output->request_state.link);
+  wl_list_remove(&output->destroy.link);
+  wl_list_remove(&output->link);
+  free(output);
 }
 
-static void server_new_output(struct wl_listener *listener, void *data) {
-	/* This event is raised by the backend when a new output (aka a display or
-	 * monitor) becomes available. */
-	struct tinywl_server *server =
-		wl_container_of(listener, server, new_output);
-	struct wlr_output *wlr_output = (struct wlr_output *)data;
+void tinywl_server::new_output(new_output_listener_t::event_type_t const& wlr_output)
+{
+  /* This event is raised by the backend when a new output (aka a display or
+   * monitor) becomes available. */
 
-	/* Configures the output created by the backend to use our allocator
-	 * and our renderer. Must be done once, before commiting the output */
-	wlr_output_init_render(wlr_output, server->allocator, server->renderer);
+  /* Configures the output created by the backend to use our allocator
+   * and our renderer. Must be done once, before commiting the output */
+  wlr_output_init_render(wlr_output, allocator, renderer);
 
-	/* The output may be disabled, switch it on. */
-	struct wlr_output_state state;
-	wlr_output_state_init(&state);
-	wlr_output_state_set_enabled(&state, true);
+  /* The output may be disabled, switch it on. */
+  struct wlr_output_state state;
+  wlr_output_state_init(&state);
+  wlr_output_state_set_enabled(&state, true);
 
-	/* Some backends don't have modes. DRM+KMS does, and we need to set a mode
-	 * before we can use the output. The mode is a tuple of (width, height,
-	 * refresh rate), and each monitor supports only a specific set of modes. We
-	 * just pick the monitor's preferred mode, a more sophisticated compositor
-	 * would let the user configure it. */
-	struct wlr_output_mode *mode = wlr_output_preferred_mode(wlr_output);
-	if (mode != NULL) {
-		wlr_output_state_set_mode(&state, mode);
-	}
+  /* Some backends don't have modes. DRM+KMS does, and we need to set a mode
+   * before we can use the output. The mode is a tuple of (width, height,
+   * refresh rate), and each monitor supports only a specific set of modes. We
+   * just pick the monitor's preferred mode, a more sophisticated compositor
+   * would let the user configure it. */
+  struct wlr_output_mode *mode = wlr_output_preferred_mode(wlr_output);
+  if (mode != NULL) {
+    wlr_output_state_set_mode(&state, mode);
+  }
 
-	/* Atomically applies the new output state. */
-	wlr_output_commit_state(wlr_output, &state);
-	wlr_output_state_finish(&state);
+  /* Atomically applies the new output state. */
+  wlr_output_commit_state(wlr_output, &state);
+  wlr_output_state_finish(&state);
 
-	/* Allocates and configures our state for this output */
-	struct tinywl_output *output = (struct tinywl_output *)calloc(1, sizeof(*output));
-	output->wlr_output = wlr_output;
-	output->server = server;
+  /* Allocates and configures our state for this output */
+  struct tinywl_output *output = (struct tinywl_output *)calloc(1, sizeof(*output));
+  output->wlr_output = wlr_output;
+  output->server = this;
 
-	/* Sets up a listener for the frame event. */
-	output->frame.notify = output_frame;
-	wl_signal_add(&wlr_output->events.frame, &output->frame);
+  /* Sets up a listener for the frame event. */
+  output->frame.notify = output_frame;
+  wl_signal_add(&wlr_output->events.frame, &output->frame);
 
-	/* Sets up a listener for the state request event. */
-	output->request_state.notify = output_request_state;
-	wl_signal_add(&wlr_output->events.request_state, &output->request_state);
+  /* Sets up a listener for the state request event. */
+  output->request_state.notify = output_request_state;
+  wl_signal_add(&wlr_output->events.request_state, &output->request_state);
 
-	/* Sets up a listener for the destroy event. */
-	output->destroy.notify = output_destroy;
-	wl_signal_add(&wlr_output->events.destroy, &output->destroy);
+  /* Sets up a listener for the destroy event. */
+  output->destroy.notify = output_destroy;
+  wl_signal_add(&wlr_output->events.destroy, &output->destroy);
 
-	wl_list_insert(&server->outputs, &output->link);
+  wl_list_insert(&outputs, &output->link);
 
-	/* Adds this to the output layout. The add_auto function arranges outputs
-	 * from left-to-right in the order they appear. A more sophisticated
-	 * compositor would let the user configure the arrangement of outputs in the
-	 * layout.
-	 *
-	 * The output layout utility automatically adds a wl_output global to the
-	 * display, which Wayland clients can see to find out information about the
-	 * output (such as DPI, scale factor, manufacturer, etc).
-	 */
-	struct wlr_output_layout_output *l_output = wlr_output_layout_add_auto(server->output_layout,
-		wlr_output);
+  /* Adds this to the output layout. The add_auto function arranges outputs
+   * from left-to-right in the order they appear. A more sophisticated
+   * compositor would let the user configure the arrangement of outputs in the
+   * layout.
+   *
+   * The output layout utility automatically adds a wl_output global to the
+   * display, which Wayland clients can see to find out information about the
+   * output (such as DPI, scale factor, manufacturer, etc).
+   */
+  struct wlr_output_layout_output *l_output = wlr_output_layout_add_auto(output_layout,
+    wlr_output);
 #if 0 // FIXME: we don't have server->scene.
-	struct wlr_scene_output *scene_output = wlr_scene_output_create(server->scene, wlr_output);
-	wlr_scene_output_layout_add_output(server->scene_layout, l_output, scene_output);
+  struct wlr_scene_output *scene_output = wlr_scene_output_create(server->scene, wlr_output);
+  wlr_scene_output_layout_add_output(server->scene_layout, l_output, scene_output);
 #endif
 }
 
+/* The static functions were replaced by member functions above */
+
 static void xdg_toplevel_map(struct wl_listener *listener, void *data) {
-	/* Called when the surface is mapped, or ready to display on-screen. */
-	struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, map);
+  /* Called when the surface is mapped, or ready to display on-screen. */
+  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, map);
 
-	wl_list_insert(&toplevel->server->toplevels, &toplevel->link);
+  wl_list_insert(&toplevel->server->toplevels, &toplevel->link);
 
-	focus_toplevel(toplevel);
+  focus_toplevel(toplevel);
 }
 
 static void xdg_toplevel_unmap(struct wl_listener *listener, void *data) {
-	/* Called when the surface is unmapped, and should no longer be shown. */
-	struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, unmap);
+  /* Called when the surface is unmapped, and should no longer be shown. */
+  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, unmap);
 
-	/* Reset the cursor mode if the grabbed toplevel was unmapped. */
-	if (toplevel == toplevel->server->grabbed_toplevel) {
-		reset_cursor_mode(toplevel->server);
-	}
+  /* Reset the cursor mode if the grabbed toplevel was unmapped. */
+  if (toplevel == toplevel->server->grabbed_toplevel) {
+    reset_cursor_mode(toplevel->server);
+  }
 
-	wl_list_remove(&toplevel->link);
+  wl_list_remove(&toplevel->link);
 }
 
 static void xdg_toplevel_commit(struct wl_listener *listener, void *data) {
-	/* Called when a new surface state is committed. */
-	struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, commit);
+  /* Called when a new surface state is committed. */
+  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, commit);
 
-	if (toplevel->xdg_toplevel->base->initial_commit) {
-		/* When an xdg_surface performs an initial commit, the compositor must
-		 * reply with a configure so the client can map the surface. tinywl
-		 * configures the xdg_toplevel with 0,0 size to let the client pick the
-		 * dimensions itself. */
-		wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, 0, 0);
-	}
+  if (toplevel->xdg_toplevel->base->initial_commit) {
+    /* When an xdg_surface performs an initial commit, the compositor must
+     * reply with a configure so the client can map the surface. tinywl
+     * configures the xdg_toplevel with 0,0 size to let the client pick the
+     * dimensions itself. */
+    wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, 0, 0);
+  }
 }
 
 static void xdg_toplevel_destroy(struct wl_listener *listener, void *data) {
-	/* Called when the xdg_toplevel is destroyed. */
-	struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, destroy);
+  /* Called when the xdg_toplevel is destroyed. */
+  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, destroy);
 
-	wl_list_remove(&toplevel->map.link);
-	wl_list_remove(&toplevel->unmap.link);
-	wl_list_remove(&toplevel->commit.link);
-	wl_list_remove(&toplevel->destroy.link);
-	wl_list_remove(&toplevel->request_move.link);
-	wl_list_remove(&toplevel->request_resize.link);
-	wl_list_remove(&toplevel->request_maximize.link);
-	wl_list_remove(&toplevel->request_fullscreen.link);
+  wl_list_remove(&toplevel->map.link);
+  wl_list_remove(&toplevel->unmap.link);
+  wl_list_remove(&toplevel->commit.link);
+  wl_list_remove(&toplevel->destroy.link);
+  wl_list_remove(&toplevel->request_move.link);
+  wl_list_remove(&toplevel->request_resize.link);
+  wl_list_remove(&toplevel->request_maximize.link);
+  wl_list_remove(&toplevel->request_fullscreen.link);
 
-	free(toplevel);
+  free(toplevel);
 }
 
 static void begin_interactive(struct tinywl_toplevel *toplevel,
-		enum tinywl_cursor_mode mode, uint32_t edges) {
-	/* This function sets up an interactive move or resize operation, where the
-	 * compositor stops propegating pointer events to clients and instead
-	 * consumes them itself, to move or resize windows. */
-	struct tinywl_server *server = toplevel->server;
+    enum tinywl_cursor_mode mode, uint32_t edges) {
+  /* This function sets up an interactive move or resize operation, where the
+   * compositor stops propegating pointer events to clients and instead
+   * consumes them itself, to move or resize windows. */
+  struct tinywl_server *server = toplevel->server;
 
-	server->grabbed_toplevel = toplevel;
-	server->cursor_mode = mode;
+  server->grabbed_toplevel = toplevel;
+  server->cursor_mode = mode;
 
 #if 0 // FIXME: we don't have `toplevel->scene_tree`.
-	if (mode == TINYWL_CURSOR_MOVE) {
-		server->grab_x = server->cursor->x - toplevel->scene_tree->node.x;
-		server->grab_y = server->cursor->y - toplevel->scene_tree->node.y;
-	} else {
-		struct wlr_box *geo_box = &toplevel->xdg_toplevel->base->geometry;
+  if (mode == TINYWL_CURSOR_MOVE) {
+    server->grab_x = server->cursor->x - toplevel->scene_tree->node.x;
+    server->grab_y = server->cursor->y - toplevel->scene_tree->node.y;
+  } else {
+    struct wlr_box *geo_box = &toplevel->xdg_toplevel->base->geometry;
 
-		double border_x = (toplevel->scene_tree->node.x + geo_box->x) +
-			((edges & WLR_EDGE_RIGHT) ? geo_box->width : 0);
-		double border_y = (toplevel->scene_tree->node.y + geo_box->y) +
-			((edges & WLR_EDGE_BOTTOM) ? geo_box->height : 0);
-		server->grab_x = server->cursor->x - border_x;
-		server->grab_y = server->cursor->y - border_y;
+    double border_x = (toplevel->scene_tree->node.x + geo_box->x) +
+      ((edges & WLR_EDGE_RIGHT) ? geo_box->width : 0);
+    double border_y = (toplevel->scene_tree->node.y + geo_box->y) +
+      ((edges & WLR_EDGE_BOTTOM) ? geo_box->height : 0);
+    server->grab_x = server->cursor->x - border_x;
+    server->grab_y = server->cursor->y - border_y;
 
-		server->grab_geobox = *geo_box;
-		server->grab_geobox.x += toplevel->scene_tree->node.x;
-		server->grab_geobox.y += toplevel->scene_tree->node.y;
+    server->grab_geobox = *geo_box;
+    server->grab_geobox.x += toplevel->scene_tree->node.x;
+    server->grab_geobox.y += toplevel->scene_tree->node.y;
 
-		server->resize_edges = edges;
-	}
+    server->resize_edges = edges;
+  }
 #endif
 }
 
 static void xdg_toplevel_request_move(
-		struct wl_listener *listener, void *data) {
-	/* This event is raised when a client would like to begin an interactive
-	 * move, typically because the user clicked on their client-side
-	 * decorations. Note that a more sophisticated compositor should check the
-	 * provided serial against a list of button press serials sent to this
-	 * client, to prevent the client from requesting this whenever they want. */
-	struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, request_move);
-	begin_interactive(toplevel, TINYWL_CURSOR_MOVE, 0);
+    struct wl_listener *listener, void *data) {
+  /* This event is raised when a client would like to begin an interactive
+   * move, typically because the user clicked on their client-side
+   * decorations. Note that a more sophisticated compositor should check the
+   * provided serial against a list of button press serials sent to this
+   * client, to prevent the client from requesting this whenever they want. */
+  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, request_move);
+  begin_interactive(toplevel, TINYWL_CURSOR_MOVE, 0);
 }
 
 static void xdg_toplevel_request_resize(
-		struct wl_listener *listener, void *data) {
-	/* This event is raised when a client would like to begin an interactive
-	 * resize, typically because the user clicked on their client-side
-	 * decorations. Note that a more sophisticated compositor should check the
-	 * provided serial against a list of button press serials sent to this
-	 * client, to prevent the client from requesting this whenever they want. */
-	struct wlr_xdg_toplevel_resize_event *event = (struct wlr_xdg_toplevel_resize_event *)data;
-	struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, request_resize);
-	begin_interactive(toplevel, TINYWL_CURSOR_RESIZE, event->edges);
+    struct wl_listener *listener, void *data) {
+  /* This event is raised when a client would like to begin an interactive
+   * resize, typically because the user clicked on their client-side
+   * decorations. Note that a more sophisticated compositor should check the
+   * provided serial against a list of button press serials sent to this
+   * client, to prevent the client from requesting this whenever they want. */
+  struct wlr_xdg_toplevel_resize_event *event = (struct wlr_xdg_toplevel_resize_event *)data;
+  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, request_resize);
+  begin_interactive(toplevel, TINYWL_CURSOR_RESIZE, event->edges);
 }
 
 static void xdg_toplevel_request_maximize(
-		struct wl_listener *listener, void *data) {
-	/* This event is raised when a client would like to maximize itself,
-	 * typically because the user clicked on the maximize button on client-side
-	 * decorations. tinywl doesn't support maximization, but to conform to
-	 * xdg-shell protocol we still must send a configure.
-	 * wlr_xdg_surface_schedule_configure() is used to send an empty reply.
-	 * However, if the request was sent before an initial commit, we don't do
-	 * anything and let the client finish the initial surface setup. */
-	struct tinywl_toplevel *toplevel =
-		wl_container_of(listener, toplevel, request_maximize);
-	if (toplevel->xdg_toplevel->base->initialized) {
-		wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
-	}
+    struct wl_listener *listener, void *data) {
+  /* This event is raised when a client would like to maximize itself,
+   * typically because the user clicked on the maximize button on client-side
+   * decorations. tinywl doesn't support maximization, but to conform to
+   * xdg-shell protocol we still must send a configure.
+   * wlr_xdg_surface_schedule_configure() is used to send an empty reply.
+   * However, if the request was sent before an initial commit, we don't do
+   * anything and let the client finish the initial surface setup. */
+  struct tinywl_toplevel *toplevel =
+    wl_container_of(listener, toplevel, request_maximize);
+  if (toplevel->xdg_toplevel->base->initialized) {
+    wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
+  }
 }
 
 static void xdg_toplevel_request_fullscreen(
-		struct wl_listener *listener, void *data) {
-	/* Just as with request_maximize, we must send a configure here. */
-	struct tinywl_toplevel *toplevel =
-		wl_container_of(listener, toplevel, request_fullscreen);
-	if (toplevel->xdg_toplevel->base->initialized) {
-		wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
-	}
+    struct wl_listener *listener, void *data) {
+  /* Just as with request_maximize, we must send a configure here. */
+  struct tinywl_toplevel *toplevel =
+    wl_container_of(listener, toplevel, request_fullscreen);
+  if (toplevel->xdg_toplevel->base->initialized) {
+    wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
+  }
 }
 
-static void server_new_xdg_toplevel(struct wl_listener *listener, void *data) {
-	/* This event is raised when a client creates a new toplevel (application window). */
-	struct tinywl_server *server = wl_container_of(listener, server, new_xdg_toplevel);
-	struct wlr_xdg_toplevel *xdg_toplevel = (struct wlr_xdg_toplevel *)data;
-
-	/* Allocate a tinywl_toplevel for this surface */
-	struct tinywl_toplevel *toplevel = (struct tinywl_toplevel *)calloc(1, sizeof(*toplevel));
-	toplevel->server = server;
-	toplevel->xdg_toplevel = xdg_toplevel;
+/* This event is raised when a client creates a new toplevel (application window). */
+void tinywl_server::new_xdg_toplevel(new_xdg_toplevel_listener_t::event_type_t const& xdg_toplevel)
+{
+  /* Allocate a tinywl_toplevel for this surface */
+  struct tinywl_toplevel *toplevel = (struct tinywl_toplevel *)calloc(1, sizeof(*toplevel));
+  toplevel->server = this;
+  toplevel->xdg_toplevel = xdg_toplevel;
 #if 0 // FIXME
-	toplevel->scene_tree =
-		wlr_scene_xdg_surface_create(&toplevel->server->scene->tree, xdg_toplevel->base);
-	toplevel->scene_tree->node.data = toplevel;
-	xdg_toplevel->base->data = toplevel->scene_tree;
+  toplevel->scene_tree =
+          wlr_scene_xdg_surface_create(&toplevel->server->scene->tree, xdg_toplevel->base);
+  toplevel->scene_tree->node.data = toplevel;
+  xdg_toplevel->base->data = toplevel->scene_tree;
 #endif
 
-	/* Listen to the various events it can emit */
-	toplevel->map.notify = xdg_toplevel_map;
-	wl_signal_add(&xdg_toplevel->base->surface->events.map, &toplevel->map);
-	toplevel->unmap.notify = xdg_toplevel_unmap;
-	wl_signal_add(&xdg_toplevel->base->surface->events.unmap, &toplevel->unmap);
-	toplevel->commit.notify = xdg_toplevel_commit;
-	wl_signal_add(&xdg_toplevel->base->surface->events.commit, &toplevel->commit);
+  /* Listen to the various events it can emit */
+  toplevel->map.notify = xdg_toplevel_map;
+  wl_signal_add(&xdg_toplevel->base->surface->events.map, &toplevel->map);
+  toplevel->unmap.notify = xdg_toplevel_unmap;
+  wl_signal_add(&xdg_toplevel->base->surface->events.unmap, &toplevel->unmap);
+  toplevel->commit.notify = xdg_toplevel_commit;
+  wl_signal_add(&xdg_toplevel->base->surface->events.commit, &toplevel->commit);
 
-	toplevel->destroy.notify = xdg_toplevel_destroy;
-	wl_signal_add(&xdg_toplevel->events.destroy, &toplevel->destroy);
+  toplevel->destroy.notify = xdg_toplevel_destroy;
+  wl_signal_add(&xdg_toplevel->events.destroy, &toplevel->destroy);
 
-	/* cotd */
-	toplevel->request_move.notify = xdg_toplevel_request_move;
-	wl_signal_add(&xdg_toplevel->events.request_move, &toplevel->request_move);
-	toplevel->request_resize.notify = xdg_toplevel_request_resize;
-	wl_signal_add(&xdg_toplevel->events.request_resize, &toplevel->request_resize);
-	toplevel->request_maximize.notify = xdg_toplevel_request_maximize;
-	wl_signal_add(&xdg_toplevel->events.request_maximize, &toplevel->request_maximize);
-	toplevel->request_fullscreen.notify = xdg_toplevel_request_fullscreen;
-	wl_signal_add(&xdg_toplevel->events.request_fullscreen, &toplevel->request_fullscreen);
+  /* cotd */
+  toplevel->request_move.notify = xdg_toplevel_request_move;
+  wl_signal_add(&xdg_toplevel->events.request_move, &toplevel->request_move);
+  toplevel->request_resize.notify = xdg_toplevel_request_resize;
+  wl_signal_add(&xdg_toplevel->events.request_resize, &toplevel->request_resize);
+  toplevel->request_maximize.notify = xdg_toplevel_request_maximize;
+  wl_signal_add(&xdg_toplevel->events.request_maximize, &toplevel->request_maximize);
+  toplevel->request_fullscreen.notify = xdg_toplevel_request_fullscreen;
+  wl_signal_add(&xdg_toplevel->events.request_fullscreen, &toplevel->request_fullscreen);
 }
 
 static void xdg_popup_commit(struct wl_listener *listener, void *data) {
-	/* Called when a new surface state is committed. */
-	struct tinywl_popup *popup = wl_container_of(listener, popup, commit);
+  /* Called when a new surface state is committed. */
+  struct tinywl_popup *popup = wl_container_of(listener, popup, commit);
 
-	if (popup->xdg_popup->base->initial_commit) {
-		/* When an xdg_surface performs an initial commit, the compositor must
-		 * reply with a configure so the client can map the surface.
-		 * tinywl sends an empty configure. A more sophisticated compositor
-		 * might change an xdg_popup's geometry to ensure it's not positioned
-		 * off-screen, for example. */
-		wlr_xdg_surface_schedule_configure(popup->xdg_popup->base);
-	}
+  if (popup->xdg_popup->base->initial_commit) {
+    /* When an xdg_surface performs an initial commit, the compositor must
+     * reply with a configure so the client can map the surface.
+     * tinywl sends an empty configure. A more sophisticated compositor
+     * might change an xdg_popup's geometry to ensure it's not positioned
+     * off-screen, for example. */
+    wlr_xdg_surface_schedule_configure(popup->xdg_popup->base);
+  }
 }
 
 static void xdg_popup_destroy(struct wl_listener *listener, void *data) {
-	/* Called when the xdg_popup is destroyed. */
-	struct tinywl_popup *popup = wl_container_of(listener, popup, destroy);
+  /* Called when the xdg_popup is destroyed. */
+  struct tinywl_popup *popup = wl_container_of(listener, popup, destroy);
 
-	wl_list_remove(&popup->commit.link);
-	wl_list_remove(&popup->destroy.link);
+  wl_list_remove(&popup->commit.link);
+  wl_list_remove(&popup->destroy.link);
 
-	free(popup);
+  free(popup);
 }
 
-static void server_new_xdg_popup(struct wl_listener *listener, void *data) {
-	/* This event is raised when a client creates a new popup. */
-	struct wlr_xdg_popup *xdg_popup = (struct wlr_xdg_popup *)data;
+void tinywl_server::new_xdg_popup(new_xdg_popup_listener_t::event_type_t const& xdg_popup)
+{
+  /* This event is raised when a client creates a new popup. */
+  struct tinywl_popup *popup = (struct tinywl_popup *)calloc(1, sizeof(*popup));
+  popup->xdg_popup = xdg_popup;
 
-	struct tinywl_popup *popup = (struct tinywl_popup *)calloc(1, sizeof(*popup));
-	popup->xdg_popup = xdg_popup;
-
-	/* We must add xdg popups to the scene graph so they get rendered. The
-	 * wlroots scene graph provides a helper for this, but to use it we must
-	 * provide the proper parent scene node of the xdg popup. To enable this,
-	 * we always set the user data field of xdg_surfaces to the corresponding
-	 * scene node. */
-	struct wlr_xdg_surface *parent = wlr_xdg_surface_try_from_wlr_surface(xdg_popup->parent);
-	assert(parent != NULL);
+  /* We must add xdg popups to the scene graph so they get rendered. The
+   * wlroots scene graph provides a helper for this, but to use it we must
+   * provide the proper parent scene node of the xdg popup. To enable this,
+   * we always set the user data field of xdg_surfaces to the corresponding
+   * scene node. */
+  struct wlr_xdg_surface *parent = wlr_xdg_surface_try_from_wlr_surface(xdg_popup->parent);
+  assert(parent != NULL);
 #if 0 // FIXME
-	struct wlr_scene_tree *parent_tree = (struct wlr_scene_tree *)parent->data;
-	xdg_popup->base->data = wlr_scene_xdg_surface_create(parent_tree, xdg_popup->base);
+  struct wlr_scene_tree *parent_tree = (struct wlr_scene_tree *)parent->data;
+  xdg_popup->base->data = wlr_scene_xdg_surface_create(parent_tree, xdg_popup->base);
 #endif
 
-	popup->commit.notify = xdg_popup_commit;
-	wl_signal_add(&xdg_popup->base->surface->events.commit, &popup->commit);
+  popup->commit.notify = xdg_popup_commit;
+  wl_signal_add(&xdg_popup->base->surface->events.commit, &popup->commit);
 
-	popup->destroy.notify = xdg_popup_destroy;
-	wl_signal_add(&xdg_popup->events.destroy, &popup->destroy);
+  popup->destroy.notify = xdg_popup_destroy;
+  wl_signal_add(&xdg_popup->events.destroy, &popup->destroy);
 }
 
 int main(int argc, char *argv[]) {
-        Debug(NAMESPACE_DEBUG::init());
+  Debug(NAMESPACE_DEBUG::init());
 
-	wlr_log_init(WLR_DEBUG, NULL);
-	char *startup_cmd = NULL;
+  wlr_log_init(WLR_DEBUG, NULL);
+  char *startup_cmd = NULL;
 
-	int c;
-	while ((c = getopt(argc, argv, "s:h")) != -1) {
-		switch (c) {
-		case 's':
-			startup_cmd = optarg;
-			break;
-		default:
-			printf("Usage: %s [-s startup command]\n", argv[0]);
-			return 0;
-		}
-	}
-	if (optind < argc) {
-		printf("Usage: %s [-s startup command]\n", argv[0]);
-		return 0;
-	}
+  int c;
+  while ((c = getopt(argc, argv, "s:h")) != -1) {
+    switch (c) {
+    case 's':
+      startup_cmd = optarg;
+      break;
+    default:
+      printf("Usage: %s [-s startup command]\n", argv[0]);
+      return 0;
+    }
+  }
+  if (optind < argc) {
+    printf("Usage: %s [-s startup command]\n", argv[0]);
+    return 0;
+  }
 
-	struct tinywl_server server = {0};
-	/* The Wayland display is managed by libwayland. It handles accepting
-	 * clients from the Unix socket, manging Wayland globals, and so on. */
-	server.wl_display = wl_display_create();
-	/* The backend is a wlroots feature which abstracts the underlying input and
-	 * output hardware. The autocreate option will choose the most suitable
-	 * backend based on the current environment, such as opening an X11 window
-	 * if an X11 server is running. */
-	server.backend = wlr_backend_autocreate(wl_display_get_event_loop(server.wl_display), NULL);
-	if (server.backend == NULL) {
-		wlr_log(WLR_ERROR, "failed to create wlr_backend");
-		return 1;
-	}
+  struct tinywl_server server = {0};
+  /* The Wayland display is managed by libwayland. It handles accepting
+   * clients from the Unix socket, manging Wayland globals, and so on. */
+  server.wl_display = wl_display_create();
+  /* The backend is a wlroots feature which abstracts the underlying input and
+   * output hardware. The autocreate option will choose the most suitable
+   * backend based on the current environment, such as opening an X11 window
+   * if an X11 server is running. */
+  server.backend = wlr_backend_autocreate(wl_display_get_event_loop(server.wl_display), NULL);
+  if (server.backend == NULL) {
+    wlr_log(WLR_ERROR, "failed to create wlr_backend");
+    return 1;
+  }
 
-	/* Autocreates a renderer, either Pixman, GLES2 or Vulkan for us. The user
-	 * can also specify a renderer using the WLR_RENDERER env var.
-	 * The renderer is responsible for defining the various pixel formats it
-	 * supports for shared memory, this configures that for clients. */
-	server.renderer = wlr_renderer_autocreate(server.backend);
-	if (server.renderer == NULL) {
-		wlr_log(WLR_ERROR, "failed to create wlr_renderer");
-		return 1;
-	}
+  /* Autocreates a renderer, either Pixman, GLES2 or Vulkan for us. The user
+   * can also specify a renderer using the WLR_RENDERER env var.
+   * The renderer is responsible for defining the various pixel formats it
+   * supports for shared memory, this configures that for clients. */
+  server.renderer = wlr_renderer_autocreate(server.backend);
+  if (server.renderer == NULL) {
+    wlr_log(WLR_ERROR, "failed to create wlr_renderer");
+    return 1;
+  }
 
-	wlr_renderer_init_wl_display(server.renderer, server.wl_display);
+  wlr_renderer_init_wl_display(server.renderer, server.wl_display);
 
-	/* Autocreates an allocator for us.
-	 * The allocator is the bridge between the renderer and the backend. It
-	 * handles the buffer creation, allowing wlroots to render onto the
-	 * screen */
-	server.allocator = wlr_allocator_autocreate(server.backend,
-		server.renderer);
-	if (server.allocator == NULL) {
-		wlr_log(WLR_ERROR, "failed to create wlr_allocator");
-		return 1;
-	}
+  /* Autocreates an allocator for us.
+   * The allocator is the bridge between the renderer and the backend. It
+   * handles the buffer creation, allowing wlroots to render onto the
+   * screen */
+  server.allocator = wlr_allocator_autocreate(server.backend,
+    server.renderer);
+  if (server.allocator == NULL) {
+    wlr_log(WLR_ERROR, "failed to create wlr_allocator");
+    return 1;
+  }
 
-	/* This creates some hands-off wlroots interfaces. The compositor is
-	 * necessary for clients to allocate surfaces, the subcompositor allows to
-	 * assign the role of subsurfaces to surfaces and the data device manager
-	 * handles the clipboard. Each of these wlroots interfaces has room for you
-	 * to dig your fingers in and play with their behavior if you want. Note that
-	 * the clients cannot set the selection directly without compositor approval,
-	 * see the handling of the request_set_selection event below.*/
-	wlr_compositor_create(server.wl_display, 5, server.renderer);
-	wlr_subcompositor_create(server.wl_display);
-	wlr_data_device_manager_create(server.wl_display);
+  /* This creates some hands-off wlroots interfaces. The compositor is
+   * necessary for clients to allocate surfaces, the subcompositor allows to
+   * assign the role of subsurfaces to surfaces and the data device manager
+   * handles the clipboard. Each of these wlroots interfaces has room for you
+   * to dig your fingers in and play with their behavior if you want. Note that
+   * the clients cannot set the selection directly without compositor approval,
+   * see the handling of the seat_request_set_selection event below.*/
+  wlr_compositor_create(server.wl_display, 5, server.renderer);
+  wlr_subcompositor_create(server.wl_display);
+  wlr_data_device_manager_create(server.wl_display);
 
-	/* Creates an output layout, which a wlroots utility for working with an
-	 * arrangement of screens in a physical layout. */
-	server.output_layout = wlr_output_layout_create(server.wl_display);
+  /* Creates an output layout, which a wlroots utility for working with an
+   * arrangement of screens in a physical layout. */
+  server.output_layout = wlr_output_layout_create(server.wl_display);
 
-	/* Configure a listener to be notified when new outputs are available on the
-	 * backend. */
-	wl_list_init(&server.outputs);
-	server.new_output.notify = server_new_output;
-	wl_signal_add(&server.backend->events.new_output, &server.new_output);
+  /* Configure a listener to be notified when new outputs are available on the
+   * backend. */
+  wl_list_init(&server.outputs);
 
-	/* Initialize the scene graph. This is a wlroots abstraction that handles all
-	 * rendering and damage tracking. All the compositor author needs to do
-	 * is add things that should be rendered to the scene graph at the proper
-	 * positions and then call wlr_scene_output_commit() to render a frame if
-	 * necessary.
-	 */
-	server.scene_.init();
+  // Initialize the server.new_output_ listener.
+  server.new_output_.init(&server.backend->events.new_output);
+  // Request a callback to server.new_output upon the new_output_ event.
+  server.new_output_handle_ = server.new_output_.request(server, &tinywl_server::new_output);
+
+  /* Initialize the scene graph. This is a wlroots abstraction that handles all
+   * rendering and damage tracking. All the compositor author needs to do
+   * is add things that should be rendered to the scene graph at the proper
+   * positions and then call wlr_scene_output_commit() to render a frame if
+   * necessary.
+   */
+  server.scene_.init();
 #if 0 // FIXME: we don't have server.scene
-	server.scene_layout = wlr_scene_attach_output_layout(server.scene, server.output_layout);
+  server.scene_layout = wlr_scene_attach_output_layout(server.scene, server.output_layout);
 #endif
 
-	/* Set up xdg-shell version 3. The xdg-shell is a Wayland protocol which is
-	 * used for application windows. For more detail on shells, refer to
-	 * https://drewdevault.com/2018/07/29/Wayland-shells.html.
-	 */
-	wl_list_init(&server.toplevels);
-	server.xdg_shell = wlr_xdg_shell_create(server.wl_display, 3);
-	server.new_xdg_toplevel.notify = server_new_xdg_toplevel;
-	wl_signal_add(&server.xdg_shell->events.new_toplevel, &server.new_xdg_toplevel);
-	server.new_xdg_popup.notify = server_new_xdg_popup;
-	wl_signal_add(&server.xdg_shell->events.new_popup, &server.new_xdg_popup);
+  /* Set up xdg-shell version 3. The xdg-shell is a Wayland protocol which is
+   * used for application windows. For more detail on shells, refer to
+   * https://drewdevault.com/2018/07/29/Wayland-shells.html.
+   */
+  wl_list_init(&server.toplevels);
+  server.xdg_shell = wlr_xdg_shell_create(server.wl_display, 3);
 
-	/*
-	 * Creates a cursor, which is a wlroots utility for tracking the cursor
-	 * image shown on screen.
-	 */
-	server.cursor = wlr_cursor_create();
-	wlr_cursor_attach_output_layout(server.cursor, server.output_layout);
+  // Initialize the server.new_xdg_toplevel_ listener.
+  server.new_xdg_toplevel_.init(&server.xdg_shell->events.new_toplevel);
+  // Request a callback to server.new_xdg_toplevel upon the new_xdg_toplevel_ event.
+  server.new_xdg_toplevel_handle_ = server.new_xdg_toplevel_.request(server, &tinywl_server::new_xdg_toplevel);
 
-	/* Creates an xcursor manager, another wlroots utility which loads up
-	 * Xcursor themes to source cursor images from and makes sure that cursor
-	 * images are available at all scale factors on the screen (necessary for
-	 * HiDPI support). */
-	server.cursor_mgr = wlr_xcursor_manager_create(NULL, 24);
+  // Initialize the server.new_xdg_popup_ listener.
+  server.new_xdg_popup_.init(&server.xdg_shell->events.new_popup);
+  // Request a callback to server.new_xdg_popup upon the new_xdg_popup_ event.
+  server.new_xdg_popup_handle_ = server.new_xdg_popup_.request(server, &tinywl_server::new_xdg_popup);
 
-	/*
-	 * wlr_cursor *only* displays an image on screen. It does not move around
-	 * when the pointer moves. However, we can attach input devices to it, and
-	 * it will generate aggregate events for all of them. In these events, we
-	 * can choose how we want to process them, forwarding them to clients and
-	 * moving the cursor around. More detail on this process is described in
-	 * https://drewdevault.com/2018/07/17/Input-handling-in-wlroots.html.
-	 *
-	 * And more comments are sprinkled throughout the notify functions above.
-	 */
-	server.cursor_mode = TINYWL_CURSOR_PASSTHROUGH;
-	server.cursor_motion.notify = server_cursor_motion;
-	wl_signal_add(&server.cursor->events.motion, &server.cursor_motion);
-	server.cursor_motion_absolute.notify = server_cursor_motion_absolute;
-	wl_signal_add(&server.cursor->events.motion_absolute,
-			&server.cursor_motion_absolute);
-	server.cursor_button.notify = server_cursor_button;
-	wl_signal_add(&server.cursor->events.button, &server.cursor_button);
-	server.cursor_axis.notify = server_cursor_axis;
-	wl_signal_add(&server.cursor->events.axis, &server.cursor_axis);
-	server.cursor_frame.notify = server_cursor_frame;
-	wl_signal_add(&server.cursor->events.frame, &server.cursor_frame);
+  /*
+   * Creates a cursor, which is a wlroots utility for tracking the cursor
+   * image shown on screen.
+   */
+  server.cursor = wlr_cursor_create();
+  wlr_cursor_attach_output_layout(server.cursor, server.output_layout);
 
-	/*
-	 * Configures a seat, which is a single "seat" at which a user sits and
-	 * operates the computer. This conceptually includes up to one keyboard,
-	 * pointer, touch, and drawing tablet device. We also rig up a listener to
-	 * let us know when new input devices are available on the backend.
-	 */
-	wl_list_init(&server.keyboards);
+  /* Creates an xcursor manager, another wlroots utility which loads up
+   * Xcursor themes to source cursor images from and makes sure that cursor
+   * images are available at all scale factors on the screen (necessary for
+   * HiDPI support). */
+  server.cursor_mgr = wlr_xcursor_manager_create(NULL, 24);
 
-        // Initialize the server.new_input_ listener.
-        server.new_input_.init(&server.backend->events.new_input);
-        // Request a callback to server.new_input upon the new_input_ event.
-        server.new_input_handle_ = server.new_input_.request(server, &tinywl_server::new_input);
+  /*
+   * wlr_cursor *only* displays an image on screen. It does not move around
+   * when the pointer moves. However, we can attach input devices to it, and
+   * it will generate aggregate events for all of them. In these events, we
+   * can choose how we want to process them, forwarding them to clients and
+   * moving the cursor around. More detail on this process is described in
+   * https://drewdevault.com/2018/07/17/Input-handling-in-wlroots.html.
+   *
+   * And more comments are sprinkled throughout the notify functions above.
+   */
+  server.cursor_mode = TINYWL_CURSOR_PASSTHROUGH;
 
-	server.seat = wlr_seat_create(server.wl_display, "seat0");
-	server.request_cursor.notify = seat_request_cursor;
-	wl_signal_add(&server.seat->events.request_set_cursor,
-			&server.request_cursor);
-	server.request_set_selection.notify = seat_request_set_selection;
-	wl_signal_add(&server.seat->events.request_set_selection,
-			&server.request_set_selection);
+  // Initialize the cursor event listeners
+  server.cursor_motion_.init(&server.cursor->events.motion);
+  server.cursor_motion_handle_ = server.cursor_motion_.request(server, &tinywl_server::cursor_motion);
 
-	/* Add a Unix socket to the Wayland display. */
-	const char *socket = wl_display_add_socket_auto(server.wl_display);
-	if (!socket) {
-		wlr_backend_destroy(server.backend);
-		return 1;
-	}
+  server.cursor_motion_absolute_.init(&server.cursor->events.motion_absolute);
+  server.cursor_motion_absolute_handle_ = server.cursor_motion_absolute_.request(server, &tinywl_server::cursor_motion_absolute);
 
-	/* Start the backend. This will enumerate outputs and inputs, become the DRM
-	 * master, etc */
-	if (!wlr_backend_start(server.backend)) {
-		wlr_backend_destroy(server.backend);
-		wl_display_destroy(server.wl_display);
-		return 1;
-	}
+  server.cursor_button_.init(&server.cursor->events.button);
+  server.cursor_button_handle_ = server.cursor_button_.request(server, &tinywl_server::cursor_button);
 
-	/* Set the WAYLAND_DISPLAY environment variable to our socket and run the
-	 * startup command if requested. */
-	setenv("WAYLAND_DISPLAY", socket, true);
-	if (startup_cmd) {
-		if (fork() == 0) {
-			execl("/bin/sh", "/bin/sh", "-c", startup_cmd, (void *)NULL);
-		}
-	}
-	/* Run the Wayland event loop. This does not return until you exit the
-	 * compositor. Starting the backend rigged up all of the necessary event
-	 * loop configuration to listen to libinput events, DRM events, generate
-	 * frame events at the refresh rate, and so on. */
-	wlr_log(WLR_INFO, "Running Wayland compositor on WAYLAND_DISPLAY=%s",
-			socket);
-	wl_display_run(server.wl_display);
+  server.cursor_axis_.init(&server.cursor->events.axis);
+  server.cursor_axis_handle_ = server.cursor_axis_.request(server, &tinywl_server::cursor_axis);
 
+  server.cursor_frame_.init(&server.cursor->events.frame);
+  server.cursor_frame_handle_ = server.cursor_frame_.request(server, &tinywl_server::cursor_frame);
 
-	/* Once wl_display_run returns, we destroy all clients then shut down the
-	 * server. */
-	wl_display_destroy_clients(server.wl_display);
+  /*
+   * Configures a seat, which is a single "seat" at which a user sits and
+   * operates the computer. This conceptually includes up to one keyboard,
+   * pointer, touch, and drawing tablet device. We also rig up a listener to
+   * let us know when new input devices are available on the backend.
+   */
+  wl_list_init(&server.keyboards);
 
-	wl_list_remove(&server.new_xdg_toplevel.link);
-	wl_list_remove(&server.new_xdg_popup.link);
+  // Initialize the server.new_input_ listener.
+  server.new_input_.init(&server.backend->events.new_input);
+  // Request a callback to server.new_input upon the new_input_ event.
+  server.new_input_handle_ = server.new_input_.request(server, &tinywl_server::new_input);
 
-	wl_list_remove(&server.cursor_motion.link);
-	wl_list_remove(&server.cursor_motion_absolute.link);
-	wl_list_remove(&server.cursor_button.link);
-	wl_list_remove(&server.cursor_axis.link);
-	wl_list_remove(&server.cursor_frame.link);
+  server.seat = wlr_seat_create(server.wl_display, "seat0");
 
-//	wl_list_remove(&server.new_input.link);
-	wl_list_remove(&server.request_cursor.link);
-	wl_list_remove(&server.request_set_selection.link);
+  // Initialize the seat_request_cursor listener.
+  server.seat_request_cursor_.init(&server.seat->events.request_set_cursor);
+  server.seat_request_cursor_handle_ = server.seat_request_cursor_.request(server, &tinywl_server::seat_request_cursor);
 
-	wl_list_remove(&server.new_output.link);
+  // Initialize the seat_request_set_selection listener.
+  server.seat_request_set_selection_.init(&server.seat->events.request_set_selection);
+  server.seat_request_set_selection_handle_ = server.seat_request_set_selection_.request(server, &tinywl_server::seat_request_set_selection);
+
+  /* Add a Unix socket to the Wayland display. */
+  const char *socket = wl_display_add_socket_auto(server.wl_display);
+  if (!socket) {
+    wlr_backend_destroy(server.backend);
+    return 1;
+  }
+
+  /* Start the backend. This will enumerate outputs and inputs, become the DRM
+   * master, etc */
+  if (!wlr_backend_start(server.backend)) {
+    wlr_backend_destroy(server.backend);
+    wl_display_destroy(server.wl_display);
+    return 1;
+  }
+
+  /* Set the WAYLAND_DISPLAY environment variable to our socket and run the
+   * startup command if requested. */
+  setenv("WAYLAND_DISPLAY", socket, true);
+  if (startup_cmd) {
+    if (fork() == 0) {
+      execl("/bin/sh", "/bin/sh", "-c", startup_cmd, (void *)NULL);
+    }
+  }
+  /* Run the Wayland event loop. This does not return until you exit the
+   * compositor. Starting the backend rigged up all of the necessary event
+   * loop configuration to listen to libinput events, DRM events, generate
+   * frame events at the refresh rate, and so on. */
+  wlr_log(WLR_INFO, "Running Wayland compositor on WAYLAND_DISPLAY=%s",
+      socket);
+  wl_display_run(server.wl_display);
+
+  /* Once wl_display_run returns, we destroy all clients then shut down the
+   * server. */
+  wl_display_destroy_clients(server.wl_display);
+
+  // No need to remove signal listeners with wl::Listener - they clean up automatically
 
 #if 0 // FIXME: we don't have server.scene
-	wlr_scene_node_destroy(&server.scene->tree.node);
+  wlr_scene_node_destroy(&server.scene->tree.node);
 #endif
-	wlr_xcursor_manager_destroy(server.cursor_mgr);
-	wlr_cursor_destroy(server.cursor);
-	wlr_allocator_destroy(server.allocator);
-	wlr_renderer_destroy(server.renderer);
-	wlr_backend_destroy(server.backend);
-	wl_display_destroy(server.wl_display);
-	return 0;
+  wlr_xcursor_manager_destroy(server.cursor_mgr);
+  wlr_cursor_destroy(server.cursor);
+  wlr_allocator_destroy(server.allocator);
+  wlr_renderer_destroy(server.renderer);
+  wlr_backend_destroy(server.backend);
+  wl_display_destroy(server.wl_display);
+  return 0;
 }
