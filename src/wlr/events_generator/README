@@ -30,10 +30,10 @@ wlr_device, remove, ../wlroots/backend/session/session.c:225
 
 Next, run:
 
-  g++ analyzer.cpp -o analyzer
-  ./analyzer $WLROOTS_BUILDDIR renamer.out | sort > analyzer.out
+  g++ -std=c++20 analyzer.cpp -o analyzer
+  ./analyzer $WLROOTS_BUILDDIR renamer.out | LC_ALL=C sort > analyzer.out
 
-  g++ generate.cpp -o generate
+  g++ -std=c++20 generate.cpp -o generate
 
 To generate listener.h run:
 

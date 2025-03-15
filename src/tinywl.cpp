@@ -107,6 +107,12 @@ std::ostream& operator<<(std::ostream& os, struct wlr_output const& output)
   return os;
 }
 
+std::ostream& operator<<(std::ostream& os, struct wlr_output_event_request_state const& output_event_request_state)
+{
+  os << "TODO: print wlr_output_event_request_state";
+  return os;
+}
+
 /* For brevity's sake, struct members are annotated where they are used. */
 enum tinywl_cursor_mode {
 	TINYWL_CURSOR_PASSTHROUGH,
@@ -191,64 +197,59 @@ struct tinywl_server
   void new_output(listener::wlr_backend::new_output::event_type_t const& output);
 };
 
-using frame_listener_t = wl::Listener<struct wlr_output>;
-using request_state_listener_t = wl::Listener<struct wlr_output_event_request_state>;
-using destroy_listener_t = wl::Listener<struct wlr_output>;
+struct tinywl_output
+{
+  struct wl_list link;
+  struct tinywl_server *server;
 
-struct tinywl_output {
-	struct wl_list link;
-	struct tinywl_server *server;
-	struct wlr_output *wlr_output;
-	struct wl_listener frame;
-	struct wl_listener request_state;
-	struct wl_listener destroy;
+  struct    wlr_output*                                 wlr_output_;
+  listener::wlr_output::frame                           output_frame_;
+  listener::wlr_output::frame::handle_t                 output_frame_handle_;
+  listener::wlr_output::request_state                   output_request_state_;
+  listener::wlr_output::request_state::handle_t         output_request_state_handle_;
+  listener::wlr_output::destroy                         output_destroy_;
+  listener::wlr_output::destroy::handle_t               output_destroy_handle_;
+
+  // Callback for output_frame_.
+  void output_frame(listener::wlr_output::frame::event_type_t const& data);
+  // Callback for output_request_state_.
+  void output_request_state(listener::wlr_output::request_state::event_type_t const& data);
+  // Callback for output_destroy_.
+  void output_destroy(listener::wlr_output::destroy::event_type_t const& data);
 };
 
-using map_listener_t = wl::Listener<std::nullptr_t>;
-using unmap_listener_t = wl::Listener<std::nullptr_t>;
-using commit_listener_t = wl::Listener<struct wlr_surface>;
-using toplevel_destroy_listener_t = wl::Listener<std::nullptr_t>;
-using request_move_listener_t = wl::Listener<struct wlr_xdg_toplevel_move_event>;
-using request_resize_listener_t = wl::Listener<struct wlr_xdg_toplevel_resize_event>;
-using request_maximize_listener_t = wl::Listener<std::nullptr_t>;
-using request_fullscreen_listener_t = wl::Listener<std::nullptr_t>;
-
-struct tinywl_toplevel {
-	struct wl_list link;
-	struct tinywl_server *server;
-	struct wlr_xdg_toplevel *xdg_toplevel;
+struct tinywl_toplevel
+{
+  struct wl_list link;
+  struct tinywl_server *server;
+  struct wlr_xdg_toplevel *xdg_toplevel;
 //	struct wlr_scene_tree *scene_tree;
-	struct wl_listener map;
-	struct wl_listener unmap;
-	struct wl_listener commit;
-	struct wl_listener destroy;
-	struct wl_listener request_move;
-	struct wl_listener request_resize;
-	struct wl_listener request_maximize;
-	struct wl_listener request_fullscreen;
+  struct wl_listener map;
+  struct wl_listener unmap;
+  struct wl_listener commit;
+  struct wl_listener destroy;
+  struct wl_listener request_move;
+  struct wl_listener request_resize;
+  struct wl_listener request_maximize;
+  struct wl_listener request_fullscreen;
 };
 
-using popup_commit_listener_t = wl::Listener<struct wlr_surface>;
-using popup_destroy_listener_t = wl::Listener<std::nullptr_t>;
-
-struct tinywl_popup {
-	struct wlr_xdg_popup *xdg_popup;
-	struct wl_listener commit;
-	struct wl_listener destroy;
+struct tinywl_popup
+{
+  struct wlr_xdg_popup *xdg_popup;
+  struct wl_listener commit;
+  struct wl_listener destroy;
 };
 
-using keyboard_modifiers_listener_t = wl::Listener<struct wlr_keyboard>;
-using keyboard_key_listener_t = wl::Listener<struct wlr_keyboard_key_event>;
-using keyboard_destroy_listener_t = wl::Listener<struct wlr_input_device>;
+struct tinywl_keyboard
+{
+  struct wl_list link;
+  struct tinywl_server *server;
+  struct wlr_keyboard *wlr_keyboard;
 
-struct tinywl_keyboard {
-	struct wl_list link;
-	struct tinywl_server *server;
-	struct wlr_keyboard *wlr_keyboard;
-
-	struct wl_listener modifiers;
-	struct wl_listener key;
-	struct wl_listener destroy;
+  struct wl_listener modifiers;
+  struct wl_listener key;
+  struct wl_listener destroy;
 };
 
 static void focus_toplevel(struct tinywl_toplevel *toplevel) {
@@ -690,15 +691,14 @@ void tinywl_server::cursor_frame(listener::wlr_cursor::frame::event_type_t const
   wlr_seat_pointer_notify_frame(seat);
 }
 
-static void output_frame(struct wl_listener *listener, void *data) {
+void tinywl_output::output_frame(listener::wlr_output::frame::event_type_t const&)
+{
   /* This function is called every time an output is ready to display a frame,
    * generally at the output's refresh rate (e.g. 60Hz). */
-  struct tinywl_output *output = wl_container_of(listener, output, frame);
-#if 0 // FIXME: we don't have `output->server->scene`.
-  struct wlr_scene *scene = output->server->scene;
+#if 0 // FIXME: we don't have `server->scene`.
+  struct wlr_scene *scene = server->scene;
 
-  struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(
-    scene, output->wlr_output);
+  struct wlr_scene_output *scene_output = wlr_scene_get_scene_output(scene, wlr_output_);
 
   /* Render the scene if needed and commit the output */
   wlr_scene_output_commit(scene_output, NULL);
@@ -709,23 +709,20 @@ static void output_frame(struct wl_listener *listener, void *data) {
 #endif
 }
 
-static void output_request_state(struct wl_listener *listener, void *data) {
+void tinywl_output::output_request_state(listener::wlr_output::request_state::event_type_t const& event)
+{
   /* This function is called when the backend requests a new state for
    * the output. For example, Wayland and X11 backends request a new mode
    * when the output window is resized. */
-  struct tinywl_output *output = wl_container_of(listener, output, request_state);
-  const struct wlr_output_event_request_state *event = (const struct wlr_output_event_request_state *)data;
-  wlr_output_commit_state(output->wlr_output, event->state);
+  wlr_output_commit_state(wlr_output_, event->state);
 }
 
-static void output_destroy(struct wl_listener *listener, void *data) {
-  struct tinywl_output *output = wl_container_of(listener, output, destroy);
-
-  wl_list_remove(&output->frame.link);
-  wl_list_remove(&output->request_state.link);
-  wl_list_remove(&output->destroy.link);
-  wl_list_remove(&output->link);
-  free(output);
+void tinywl_output::output_destroy(listener::wlr_output::destroy::event_type_t const&)
+{
+  output_frame_handle_.cancel();
+  output_request_state_handle_.cancel();
+  output_destroy_handle_.cancel();
+  wl_list_remove(&link);
 }
 
 void tinywl_server::new_output(listener::wlr_backend::new_output::event_type_t const& wlr_output)
@@ -758,20 +755,20 @@ void tinywl_server::new_output(listener::wlr_backend::new_output::event_type_t c
 
   /* Allocates and configures our state for this output */
   struct tinywl_output *output = (struct tinywl_output *)calloc(1, sizeof(*output));
-  output->wlr_output = wlr_output;
+  output->wlr_output_ = wlr_output;
   output->server = this;
 
-  /* Sets up a listener for the frame event. */
-  output->frame.notify = output_frame;
-  wl_signal_add(&wlr_output->events.frame, &output->frame);
+  // Initialize the output_frame_ listener.
+  output->output_frame_.init(&wlr_output->events.frame);
+  output->output_frame_handle_ = output->output_frame_.request(*output, &tinywl_output::output_frame);
 
-  /* Sets up a listener for the state request event. */
-  output->request_state.notify = output_request_state;
-  wl_signal_add(&wlr_output->events.request_state, &output->request_state);
+  // Initialize the output_request_state_ listener.
+  output->output_request_state_.init(&wlr_output->events.request_state);
+  output->output_request_state_handle_ = output->output_request_state_.request(*output, &tinywl_output::output_request_state);
 
-  /* Sets up a listener for the destroy event. */
-  output->destroy.notify = output_destroy;
-  wl_signal_add(&wlr_output->events.destroy, &output->destroy);
+  // Initialize the output_destroy_ listener.
+  output->output_destroy_.init(&wlr_output->events.destroy);
+  output->output_destroy_handle_ = output->output_destroy_.request(*output, &tinywl_output::output_destroy);
 
   wl_list_insert(&outputs, &output->link);
 
@@ -1148,7 +1145,7 @@ int main(int argc, char *argv[]) {
    */
   server.cursor_mode = TINYWL_CURSOR_PASSTHROUGH;
 
-  // Initialize the cursor event listeners
+  // Initialize the cursor_* event listeners
   server.cursor_motion_.init(&server.cursor->events.motion);
   server.cursor_motion_handle_ = server.cursor_motion_.request(server, &tinywl_server::cursor_motion);
 
@@ -1179,11 +1176,11 @@ int main(int argc, char *argv[]) {
 
   server.seat = wlr_seat_create(server.wl_display, "seat0");
 
-  // Initialize the seat_request_set_cursor listener.
+  // Initialize the seat_request_set_cursor_ listener.
   server.seat_request_set_cursor_.init(&server.seat->events.request_set_cursor);
   server.seat_request_set_cursor_handle_ = server.seat_request_set_cursor_.request(server, &tinywl_server::seat_request_set_cursor);
 
-  // Initialize the seat_request_set_selection listener.
+  // Initialize the seat_request_set_selection_ listener.
   server.seat_request_set_selection_.init(&server.seat->events.request_set_selection);
   server.seat_request_set_selection_handle_ = server.seat_request_set_selection_.request(server, &tinywl_server::seat_request_set_selection);
 

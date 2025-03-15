@@ -36,12 +36,11 @@ struct wlr_pointer_button_event;
 struct wlr_cursor;
 struct wlr_pointer_hold_begin_event;
 struct wlr_pointer_hold_end_event;
-struct wlr_pointer_motion_absolute_event;
 struct wlr_pointer_motion_event;
+struct wlr_pointer_motion_absolute_event;
 struct wlr_pointer_pinch_begin_event;
 struct wlr_pointer_pinch_end_event;
 struct wlr_pointer_pinch_update_event;
-struct wlr_cursor_shape_manager_v1_request_set_shape_event;
 struct wlr_pointer_swipe_begin_event;
 struct wlr_pointer_swipe_end_event;
 struct wlr_pointer_swipe_update_event;
@@ -53,6 +52,7 @@ struct wlr_touch_cancel_event;
 struct wlr_touch_down_event;
 struct wlr_touch_motion_event;
 struct wlr_touch_up_event;
+struct wlr_cursor_shape_manager_v1_request_set_shape_event;
 struct wlr_data_control_manager_v1;
 struct wlr_data_control_device_v1;
 struct wlr_data_device_manager;
@@ -60,8 +60,8 @@ struct wlr_data_source;
 struct wlr_device_change_event;
 struct wlr_drag;
 struct wlr_drag_drop_event;
-struct wlr_drag_icon;
 struct wlr_drag_motion_event;
+struct wlr_drag_icon;
 struct wlr_drm_lease_request_v1;
 struct wlr_export_dmabuf_manager_v1;
 struct wlr_ext_data_control_manager_v1;
@@ -84,9 +84,9 @@ struct wlr_input_method_keyboard_grab_v2;
 struct wlr_input_method_manager_v2;
 struct wlr_input_method_v2;
 struct wlr_input_popup_surface_v2;
-struct wl_array;
-struct wlr_keyboard;
 struct wlr_keyboard_key_event;
+struct wlr_keyboard;
+struct wl_array;
 struct wlr_keyboard_shortcuts_inhibit_manager_v1;
 struct wlr_keyboard_shortcuts_inhibitor_v1;
 struct wlr_layer_shell_v1;
@@ -96,6 +96,9 @@ struct wlr_linux_dmabuf_v1;
 struct wlr_output_event_bind;
 struct wlr_output_event_commit;
 struct wlr_output_event_damage;
+struct wlr_output_event_precommit;
+struct wlr_output_event_present;
+struct wlr_output_event_request_state;
 struct wlr_output_layer_feedback_event;
 struct wlr_output_layout_output;
 struct wlr_output_layout;
@@ -103,11 +106,8 @@ struct wlr_output_configuration_v1;
 struct wlr_output_manager_v1;
 struct wlr_output_power_manager_v1;
 struct wlr_output_power_v1_set_mode_event;
-struct wlr_output_event_precommit;
-struct wlr_output_event_present;
-struct wlr_output_event_request_state;
-struct wlr_pointer_constraint_v1;
 struct wlr_pointer;
+struct wlr_pointer_constraint_v1;
 struct wlr_presentation;
 struct wlr_primary_selection_source;
 struct wlr_primary_selection_v1_device_manager;
@@ -119,17 +119,17 @@ struct wlr_scene_output;
 struct wlr_scene_output_sample_event;
 struct wlr_scene_outputs_update_event;
 struct wlr_screencopy_manager_v1;
-struct wlr_seat_client;
 struct wlr_seat;
 struct wlr_seat_keyboard_grab;
-struct wlr_seat_keyboard_focus_change_event;
 struct wlr_seat_pointer_grab;
-struct wlr_seat_pointer_focus_change_event;
 struct wlr_seat_pointer_request_set_cursor_event;
 struct wlr_seat_request_set_primary_selection_event;
 struct wlr_seat_request_set_selection_event;
 struct wlr_seat_request_start_drag_event;
 struct wlr_seat_touch_grab;
+struct wlr_seat_client;
+struct wlr_seat_keyboard_focus_change_event;
+struct wlr_seat_pointer_focus_change_event;
 struct wlr_security_context_v1_commit_event;
 struct wlr_security_context_manager_v1;
 struct wlr_server_decoration;
@@ -165,10 +165,10 @@ struct wlr_xdg_shell;
 struct wlr_xdg_surface;
 struct wlr_xdg_toplevel;
 struct wlr_xdg_surface_configure;
-struct wlr_xdg_toplevel_icon_manager_v1_set_icon_event;
 struct wlr_xdg_toplevel_move_event;
 struct wlr_xdg_toplevel_resize_event;
 struct wlr_xdg_toplevel_show_window_menu_event;
+struct wlr_xdg_toplevel_icon_manager_v1_set_icon_event;
 struct wlr_xdg_dialog_v1;
 struct wlr_xwayland_surface;
 struct wlr_xwayland_remove_startup_info_event;
@@ -205,17 +205,11 @@ namespace wlr_cursor {
   using frame = struct wlr_cursor;
   using hold_begin = struct wlr_pointer_hold_begin_event;
   using hold_end = struct wlr_pointer_hold_end_event;
-  using motion_absolute = struct wlr_pointer_motion_absolute_event;
   using motion = struct wlr_pointer_motion_event;
+  using motion_absolute = struct wlr_pointer_motion_absolute_event;
   using pinch_begin = struct wlr_pointer_pinch_begin_event;
   using pinch_end = struct wlr_pointer_pinch_end_event;
   using pinch_update = struct wlr_pointer_pinch_update_event;
-} // namespace wlr_cursor
-namespace wlr_cursor_shape_manager_v1 {
-  using destroy = std::nullptr_t;
-  using request_set_shape = struct wlr_cursor_shape_manager_v1_request_set_shape_event;
-} // namespace wlr_cursor_shape_manager_v1
-namespace wlr_cursor {
   using swipe_begin = struct wlr_pointer_swipe_begin_event;
   using swipe_end = struct wlr_pointer_swipe_end_event;
   using swipe_update = struct wlr_pointer_swipe_update_event;
@@ -229,6 +223,10 @@ namespace wlr_cursor {
   using touch_motion = struct wlr_touch_motion_event;
   using touch_up = struct wlr_touch_up_event;
 } // namespace wlr_cursor
+namespace wlr_cursor_shape_manager_v1 {
+  using destroy = std::nullptr_t;
+  using request_set_shape = struct wlr_cursor_shape_manager_v1_request_set_shape_event;
+} // namespace wlr_cursor_shape_manager_v1
 namespace wlr_data_control_manager_v1 {
   using destroy = struct wlr_data_control_manager_v1;
   using new_device = struct wlr_data_control_device_v1;
@@ -247,13 +245,11 @@ namespace wlr_drag {
   using destroy = struct wlr_drag;
   using drop = struct wlr_drag_drop_event;
   using focus = struct wlr_drag;
+  using motion = struct wlr_drag_motion_event;
 } // namespace wlr_drag
 namespace wlr_drag_icon {
   using destroy = struct wlr_drag_icon;
 } // namespace wlr_drag_icon
-namespace wlr_drag {
-  using motion = struct wlr_drag_motion_event;
-} // namespace wlr_drag
 namespace wlr_drm {
   using destroy = std::nullptr_t;
 } // namespace wlr_drm
@@ -279,14 +275,12 @@ namespace wlr_ext_foreign_toplevel_list_v1 {
 } // namespace wlr_ext_foreign_toplevel_list_v1
 namespace wlr_ext_image_capture_source_v1 {
   using constraints_update = std::nullptr_t;
+  using destroy = std::nullptr_t;
+  using frame = struct wlr_ext_output_image_capture_source_v1_frame_event;
 } // namespace wlr_ext_image_capture_source_v1
 namespace wlr_ext_image_capture_source_v1_cursor {
   using update = std::nullptr_t;
 } // namespace wlr_ext_image_capture_source_v1_cursor
-namespace wlr_ext_image_capture_source_v1 {
-  using destroy = std::nullptr_t;
-  using frame = struct wlr_ext_output_image_capture_source_v1_frame_event;
-} // namespace wlr_ext_image_capture_source_v1
 namespace wlr_ext_image_copy_capture_frame_v1 {
   using destroy = std::nullptr_t;
 } // namespace wlr_ext_image_copy_capture_frame_v1
@@ -339,16 +333,16 @@ namespace wlr_input_method_v2 {
 namespace wlr_input_popup_surface_v2 {
   using destroy = std::nullptr_t;
 } // namespace wlr_input_popup_surface_v2
+namespace wlr_keyboard {
+  using key = struct wlr_keyboard_key_event;
+  using keymap = struct wlr_keyboard;
+  using modifiers = struct wlr_keyboard;
+  using repeat_info = struct wlr_keyboard;
+} // namespace wlr_keyboard
 namespace wlr_keyboard_group {
   using enter = struct wl_array;
   using leave = struct wl_array;
 } // namespace wlr_keyboard_group
-namespace wlr_keyboard {
-  using keymap = struct wlr_keyboard;
-  using key = struct wlr_keyboard_key_event;
-  using modifiers = struct wlr_keyboard;
-  using repeat_info = struct wlr_keyboard;
-} // namespace wlr_keyboard
 namespace wlr_keyboard_shortcuts_inhibit_manager_v1 {
   using destroy = struct wlr_keyboard_shortcuts_inhibit_manager_v1;
   using new_inhibitor = struct wlr_keyboard_shortcuts_inhibitor_v1;
@@ -378,6 +372,10 @@ namespace wlr_output {
   using description = struct wlr_output;
   using destroy = struct wlr_output;
   using frame = struct wlr_output;
+  using needs_frame = struct wlr_output;
+  using precommit = struct wlr_output_event_precommit;
+  using present = struct wlr_output_event_present;
+  using request_state = struct wlr_output_event_request_state;
 } // namespace wlr_output
 namespace wlr_output_layer {
   using feedback = struct wlr_output_layer_feedback_event;
@@ -395,41 +393,18 @@ namespace wlr_output_manager_v1 {
   using destroy = struct wlr_output_manager_v1;
   using test = struct wlr_output_configuration_v1;
 } // namespace wlr_output_manager_v1
-namespace wlr_output {
-  using needs_frame = struct wlr_output;
-} // namespace wlr_output
 namespace wlr_output_power_manager_v1 {
   using destroy = struct wlr_output_power_manager_v1;
   using set_mode = struct wlr_output_power_v1_set_mode_event;
 } // namespace wlr_output_power_manager_v1
-namespace wlr_output {
-  using precommit = struct wlr_output_event_precommit;
-  using present = struct wlr_output_event_present;
-  using request_state = struct wlr_output_event_request_state;
-} // namespace wlr_output
 namespace wlr_pointer {
   using axis = struct wlr_pointer_axis_event;
   using button = struct wlr_pointer_button_event;
-} // namespace wlr_pointer
-namespace wlr_pointer_constraints_v1 {
-  using destroy = std::nullptr_t;
-  using new_constraint = struct wlr_pointer_constraint_v1;
-} // namespace wlr_pointer_constraints_v1
-namespace wlr_pointer_constraint_v1 {
-  using destroy = struct wlr_pointer_constraint_v1;
-  using set_region = std::nullptr_t;
-} // namespace wlr_pointer_constraint_v1
-namespace wlr_pointer {
   using frame = struct wlr_pointer;
-} // namespace wlr_pointer
-namespace wlr_pointer_gestures_v1 {
-  using destroy = std::nullptr_t;
-} // namespace wlr_pointer_gestures_v1
-namespace wlr_pointer {
   using hold_begin = struct wlr_pointer_hold_begin_event;
   using hold_end = struct wlr_pointer_hold_end_event;
-  using motion_absolute = struct wlr_pointer_motion_absolute_event;
   using motion = struct wlr_pointer_motion_event;
+  using motion_absolute = struct wlr_pointer_motion_absolute_event;
   using pinch_begin = struct wlr_pointer_pinch_begin_event;
   using pinch_end = struct wlr_pointer_pinch_end_event;
   using pinch_update = struct wlr_pointer_pinch_update_event;
@@ -437,6 +412,17 @@ namespace wlr_pointer {
   using swipe_end = struct wlr_pointer_swipe_end_event;
   using swipe_update = struct wlr_pointer_swipe_update_event;
 } // namespace wlr_pointer
+namespace wlr_pointer_constraint_v1 {
+  using destroy = struct wlr_pointer_constraint_v1;
+  using set_region = std::nullptr_t;
+} // namespace wlr_pointer_constraint_v1
+namespace wlr_pointer_constraints_v1 {
+  using destroy = std::nullptr_t;
+  using new_constraint = struct wlr_pointer_constraint_v1;
+} // namespace wlr_pointer_constraints_v1
+namespace wlr_pointer_gestures_v1 {
+  using destroy = std::nullptr_t;
+} // namespace wlr_pointer_gestures_v1
 namespace wlr_presentation {
   using destroy = struct wlr_presentation;
 } // namespace wlr_presentation
@@ -473,25 +459,12 @@ namespace wlr_scene_output {
 namespace wlr_screencopy_manager_v1 {
   using destroy = struct wlr_screencopy_manager_v1;
 } // namespace wlr_screencopy_manager_v1
-namespace wlr_seat_client {
-  using destroy = struct wlr_seat_client;
-} // namespace wlr_seat_client
 namespace wlr_seat {
   using destroy = struct wlr_seat;
   using keyboard_grab_begin = struct wlr_seat_keyboard_grab;
   using keyboard_grab_end = struct wlr_seat_keyboard_grab;
-} // namespace wlr_seat
-namespace wlr_seat_keyboard_state {
-  using focus_change = struct wlr_seat_keyboard_focus_change_event;
-} // namespace wlr_seat_keyboard_state
-namespace wlr_seat {
   using pointer_grab_begin = struct wlr_seat_pointer_grab;
   using pointer_grab_end = struct wlr_seat_pointer_grab;
-} // namespace wlr_seat
-namespace wlr_seat_pointer_state {
-  using focus_change = struct wlr_seat_pointer_focus_change_event;
-} // namespace wlr_seat_pointer_state
-namespace wlr_seat {
   using request_set_cursor = struct wlr_seat_pointer_request_set_cursor_event;
   using request_set_primary_selection = struct wlr_seat_request_set_primary_selection_event;
   using request_set_selection = struct wlr_seat_request_set_selection_event;
@@ -502,20 +475,27 @@ namespace wlr_seat {
   using touch_grab_begin = struct wlr_seat_touch_grab;
   using touch_grab_end = struct wlr_seat_touch_grab;
 } // namespace wlr_seat
+namespace wlr_seat_client {
+  using destroy = struct wlr_seat_client;
+} // namespace wlr_seat_client
+namespace wlr_seat_keyboard_state {
+  using focus_change = struct wlr_seat_keyboard_focus_change_event;
+} // namespace wlr_seat_keyboard_state
+namespace wlr_seat_pointer_state {
+  using focus_change = struct wlr_seat_pointer_focus_change_event;
+} // namespace wlr_seat_pointer_state
 namespace wlr_security_context_manager_v1 {
   using commit = struct wlr_security_context_v1_commit_event;
   using destroy = struct wlr_security_context_manager_v1;
 } // namespace wlr_security_context_manager_v1
 namespace wlr_server_decoration {
   using destroy = struct wlr_server_decoration;
+  using mode = struct wlr_server_decoration;
 } // namespace wlr_server_decoration
 namespace wlr_server_decoration_manager {
   using destroy = struct wlr_server_decoration_manager;
   using new_decoration = struct wlr_server_decoration;
 } // namespace wlr_server_decoration_manager
-namespace wlr_server_decoration {
-  using mode = struct wlr_server_decoration;
-} // namespace wlr_server_decoration
 namespace wlr_session {
   using active = std::nullptr_t;
   using add_drm_card = struct wlr_session_add_event;
@@ -553,6 +533,8 @@ namespace wlr_switch {
 namespace wlr_tablet {
   using axis = struct wlr_tablet_tool_axis_event;
   using button = struct wlr_tablet_tool_button_event;
+  using proximity = struct wlr_tablet_tool_proximity_event;
+  using tip = struct wlr_tablet_tool_tip_event;
 } // namespace wlr_tablet
 namespace wlr_tablet_manager_v2 {
   using destroy = struct wlr_tablet_manager_v2;
@@ -563,10 +545,6 @@ namespace wlr_tablet_pad {
   using ring = struct wlr_tablet_pad_ring_event;
   using strip = struct wlr_tablet_pad_strip_event;
 } // namespace wlr_tablet_pad
-namespace wlr_tablet {
-  using proximity = struct wlr_tablet_tool_proximity_event;
-  using tip = struct wlr_tablet_tool_tip_event;
-} // namespace wlr_tablet
 namespace wlr_tablet_tool {
   using destroy = struct wlr_tablet_tool;
 } // namespace wlr_tablet_tool
@@ -601,13 +579,11 @@ namespace wlr_touch {
   using down = struct wlr_touch_down_event;
   using frame = std::nullptr_t;
   using motion = struct wlr_touch_motion_event;
+  using up = struct wlr_touch_up_event;
 } // namespace wlr_touch
 namespace wlr_touch_point {
   using destroy = struct wlr_touch_point;
 } // namespace wlr_touch_point
-namespace wlr_touch {
-  using up = struct wlr_touch_up_event;
-} // namespace wlr_touch
 namespace wlr_transient_seat_manager_v1 {
   using create_seat = struct wlr_transient_seat_v1;
   using destroy = std::nullptr_t;
@@ -671,18 +647,8 @@ namespace wlr_xdg_surface {
   using new_popup = struct wlr_xdg_popup;
   using ping_timeout = std::nullptr_t;
 } // namespace wlr_xdg_surface
-namespace wlr_xdg_toplevel_decoration_v1 {
-  using destroy = struct wlr_xdg_toplevel_decoration_v1;
-  using request_mode = struct wlr_xdg_toplevel_decoration_v1;
-} // namespace wlr_xdg_toplevel_decoration_v1
 namespace wlr_xdg_toplevel {
   using destroy = std::nullptr_t;
-} // namespace wlr_xdg_toplevel
-namespace wlr_xdg_toplevel_icon_manager_v1 {
-  using destroy = std::nullptr_t;
-  using set_icon = struct wlr_xdg_toplevel_icon_manager_v1_set_icon_event;
-} // namespace wlr_xdg_toplevel_icon_manager_v1
-namespace wlr_xdg_toplevel {
   using request_fullscreen = std::nullptr_t;
   using request_maximize = std::nullptr_t;
   using request_minimize = std::nullptr_t;
@@ -693,6 +659,14 @@ namespace wlr_xdg_toplevel {
   using set_parent = std::nullptr_t;
   using set_title = std::nullptr_t;
 } // namespace wlr_xdg_toplevel
+namespace wlr_xdg_toplevel_decoration_v1 {
+  using destroy = struct wlr_xdg_toplevel_decoration_v1;
+  using request_mode = struct wlr_xdg_toplevel_decoration_v1;
+} // namespace wlr_xdg_toplevel_decoration_v1
+namespace wlr_xdg_toplevel_icon_manager_v1 {
+  using destroy = std::nullptr_t;
+  using set_icon = struct wlr_xdg_toplevel_icon_manager_v1_set_icon_event;
+} // namespace wlr_xdg_toplevel_icon_manager_v1
 namespace wlr_xdg_wm_dialog_v1 {
   using destroy = std::nullptr_t;
   using new_dialog = struct wlr_xdg_dialog_v1;
