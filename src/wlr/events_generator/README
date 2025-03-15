@@ -1,0 +1,46 @@
+This directory contains scripts and programs that were used to generate events.h.
+
+To run these scripts, you need to clone wlroots, configure it and build it.
+For example:
+
+  git clone https://gitlab.freedesktop.org/wlroots/wlroots.git
+  mkdir build
+  WLROOTS_BUILDDIR=$PWD/build
+  cd wlroots
+  WLROOTS_DIR=$PWD
+
+  CPUS=$(nproc)
+
+  meson setup --backend ninja --buildtype=debug --clearcache -Drenderers=vulkan --prefix=/usr "$WLROOTS_BUILDDIR" "$WLROOTS_DIR"
+  ninja -C "$WLROOTS_BUILDDIR" -j $CPUS
+
+Then begin with running `renamer.sh`:
+
+  ./renamer.sh $WLROOTS_DIR $WLROOTS_BUILDDIR
+
+This should produce a file in the current directory called `renamer.out`
+with content like:
+
+wlr_multi_backend, backend_add, ../wlroots/backend/multi/backend.c:268
+wlr_multi_backend, backend_remove, ../wlroots/backend/multi/backend.c:280
+wlr_drm_lease, destroy, ../wlroots/backend/drm/drm.c:2188
+wlr_device, change, ../wlroots/backend/session/session.c:216
+wlr_device, remove, ../wlroots/backend/session/session.c:225
+...etc
+
+Next, run:
+
+  g++ analyzer.cpp -o analyzer
+  ./analyzer $WLROOTS_BUILDDIR renamer.out | sort > analyzer.out
+
+  g++ generate.cpp -o generate
+
+To generate listener.h run:
+
+  cp listener_header.h listener.h
+  ./generate --listener analyzer.out >> listener.h
+
+To generate events.h run:
+
+  cp events_header.h events.h
+  ./generate --events analyzer.out >> events.h

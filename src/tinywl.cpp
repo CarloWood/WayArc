@@ -32,24 +32,14 @@ extern "C" {
 
 #include <xkbcommon/xkbcommon.h>
 
+#include "wlr/listener.h"
+#include "wlr/events.h"
 #include "wlr/Scene.h"
 #include "wl/Listener.h"
 #include "debug.h"
 
 #undef wl_container_of
 #define wl_container_of(...) nullptr
-
-using new_xdg_toplevel_listener_t = wl::Listener<struct wlr_xdg_toplevel>;
-using new_input_listener_t = wl::Listener<struct wlr_input_device>;
-using new_xdg_popup_listener_t = wl::Listener<struct wlr_xdg_popup>;
-using cursor_motion_listener_t = wl::Listener<struct wlr_pointer_motion_event>;
-using cursor_motion_absolute_listener_t = wl::Listener<struct wlr_pointer_motion_absolute_event>;
-using cursor_button_listener_t = wl::Listener<struct wlr_pointer_button_event>;
-using cursor_axis_listener_t = wl::Listener<struct wlr_pointer_axis_event>;
-using cursor_frame_listener_t = wl::Listener<struct wlr_cursor>;
-using seat_request_cursor_listener_t = wl::Listener<struct wlr_seat_pointer_request_set_cursor_event>;
-using seat_request_set_selection_listener_t = wl::Listener<struct wlr_seat_request_set_selection_event>;
-using new_output_listener_t = wl::Listener<struct wlr_output>;
 
 std::ostream& operator<<(std::ostream& os, struct wlr_xdg_toplevel const& xdg_toplevel)
 {
@@ -99,7 +89,7 @@ std::ostream& operator<<(std::ostream& os, struct wlr_cursor const& cursor)
   return os;
 }
 
-std::ostream& operator<<(std::ostream& os, struct wlr_seat_pointer_request_set_cursor_event const& seat_request_cursor_event)
+std::ostream& operator<<(std::ostream& os, struct wlr_seat_pointer_request_set_cursor_event const& seat_request_set_cursor_event)
 {
   os << "TODO: print wlr_seat_pointer_request_set_cursor_event";
   return os;
@@ -127,50 +117,45 @@ enum tinywl_cursor_mode {
 struct tinywl_server
 {
   struct wl_display *wl_display;
-  struct wlr_backend *backend;
+
+  struct    wlr_backend*                                backend;
+  listener::wlr_backend::new_input                      backend_new_input_;
+  listener::wlr_backend::new_input::handle_t            backend_new_input_handle_;
+  listener::wlr_backend::new_output                     backend_new_output_;
+  listener::wlr_backend::new_output::handle_t           backend_new_output_handle_;
+
   struct wlr_renderer *renderer;
   struct wlr_allocator *allocator;
   wlr::Scene scene_;
   struct wlr_scene_output_layout *scene_layout;
 
-  struct wlr_xdg_shell *xdg_shell;
-
-  new_xdg_toplevel_listener_t new_xdg_toplevel_;
-  new_xdg_toplevel_listener_t::handle_t new_xdg_toplevel_handle_;
-
-  new_xdg_popup_listener_t new_xdg_popup_;
-  new_xdg_popup_listener_t::handle_t new_xdg_popup_handle_;
+  struct    wlr_xdg_shell*                              xdg_shell;
+  listener::wlr_xdg_shell::new_toplevel                 xdg_shell_new_toplevel_;
+  listener::wlr_xdg_shell::new_toplevel::handle_t       xdg_shell_new_toplevel_handle_;
+  listener::wlr_xdg_shell::new_popup                    xdg_shell_new_popup_;
+  listener::wlr_xdg_shell::new_popup::handle_t          xdg_shell_new_popup_handle_;
 
   struct wl_list toplevels;
 
-  struct wlr_cursor *cursor;
+  struct    wlr_cursor*                                 cursor;
+  listener::wlr_cursor::motion                          cursor_motion_;
+  listener::wlr_cursor::motion::handle_t                cursor_motion_handle_;
+  listener::wlr_cursor::motion_absolute                 cursor_motion_absolute_;
+  listener::wlr_cursor::motion_absolute::handle_t       cursor_motion_absolute_handle_;
+  listener::wlr_cursor::button                          cursor_button_;
+  listener::wlr_cursor::button::handle_t                cursor_button_handle_;
+  listener::wlr_cursor::axis                            cursor_axis_;
+  listener::wlr_cursor::axis::handle_t                  cursor_axis_handle_;
+  listener::wlr_cursor::frame                           cursor_frame_;
+  listener::wlr_cursor::frame::handle_t                 cursor_frame_handle_;
+
   struct wlr_xcursor_manager *cursor_mgr;
 
-  cursor_motion_listener_t cursor_motion_;
-  cursor_motion_listener_t::handle_t cursor_motion_handle_;
-
-  cursor_motion_absolute_listener_t cursor_motion_absolute_;
-  cursor_motion_absolute_listener_t::handle_t cursor_motion_absolute_handle_;
-
-  cursor_button_listener_t cursor_button_;
-  cursor_button_listener_t::handle_t cursor_button_handle_;
-
-  cursor_axis_listener_t cursor_axis_;
-  cursor_axis_listener_t::handle_t cursor_axis_handle_;
-
-  cursor_frame_listener_t cursor_frame_;
-  cursor_frame_listener_t::handle_t cursor_frame_handle_;
-
-  struct wlr_seat *seat;
-
-  new_input_listener_t new_input_;
-  new_input_listener_t::handle_t new_input_handle_;
-
-  seat_request_cursor_listener_t seat_request_cursor_;
-  seat_request_cursor_listener_t::handle_t seat_request_cursor_handle_;
-
-  seat_request_set_selection_listener_t seat_request_set_selection_;
-  seat_request_set_selection_listener_t::handle_t seat_request_set_selection_handle_;
+  struct    wlr_seat*                                   seat;
+  listener::wlr_seat::request_set_cursor                seat_request_set_cursor_;
+  listener::wlr_seat::request_set_cursor::handle_t      seat_request_set_cursor_handle_;
+  listener::wlr_seat::request_set_selection             seat_request_set_selection_;
+  listener::wlr_seat::request_set_selection::handle_t   seat_request_set_selection_handle_;
 
   struct wl_list keyboards;
   enum tinywl_cursor_mode cursor_mode;
@@ -182,32 +167,33 @@ struct tinywl_server
   struct wlr_output_layout *output_layout;
   struct wl_list outputs;
 
-  new_output_listener_t new_output_;
-  new_output_listener_t::handle_t new_output_handle_;
-
-  // Callback for new_xdg_toplevel_.
-  void new_xdg_toplevel(new_xdg_toplevel_listener_t::event_type_t const& xdg_toplevel);
-  // Callback for new_input_.
-  void new_input(new_input_listener_t::event_type_t const& device);
-  // Callback for new_xdg_popup_.
-  void new_xdg_popup(new_xdg_popup_listener_t::event_type_t const& xdg_popup);
+  // Callback for xdg_shell_new_toplevel_.
+  void xdg_shell_new_toplevel(listener::wlr_xdg_shell::new_toplevel::event_type_t const& xdg_toplevel);
+  // Callback for backend_new_input_.
+  void backend_new_input(listener::wlr_backend::new_input::event_type_t const& device);
+  // Callback for xdg_shell_new_popup_.
+  void xdg_shell_new_popup(listener::wlr_xdg_shell::new_popup::event_type_t const& xdg_popup);
   // Callback for cursor_motion_.
-  void cursor_motion(cursor_motion_listener_t::event_type_t const& event);
+  void cursor_motion(listener::wlr_cursor::motion::event_type_t const& event);
   // Callback for cursor_motion_absolute_.
-  void cursor_motion_absolute(cursor_motion_absolute_listener_t::event_type_t const& event);
+  void cursor_motion_absolute(listener::wlr_cursor::motion_absolute::event_type_t const& event);
   // Callback for cursor_button_.
-  void cursor_button(cursor_button_listener_t::event_type_t const& event);
+  void cursor_button(listener::wlr_cursor::button::event_type_t const& event);
   // Callback for cursor_axis_.
-  void cursor_axis(cursor_axis_listener_t::event_type_t const& event);
+  void cursor_axis(listener::wlr_cursor::axis::event_type_t const& event);
   // Callback for cursor_frame_.
-  void cursor_frame(cursor_frame_listener_t::event_type_t const& data);
-  // Callback for seat_request_cursor_.
-  void seat_request_cursor(seat_request_cursor_listener_t::event_type_t const& event);
+  void cursor_frame(listener::wlr_cursor::frame::event_type_t const& data);
+  // Callback for seat_request_set_cursor_.
+  void seat_request_set_cursor(listener::wlr_seat::request_set_cursor::event_type_t const& event);
   // Callback for seat_request_set_selection_.
-  void seat_request_set_selection(seat_request_set_selection_listener_t::event_type_t const& event);
-  // Callback for new_output_.
-  void new_output(new_output_listener_t::event_type_t const& output);
+  void seat_request_set_selection(listener::wlr_seat::request_set_selection::event_type_t const& event);
+  // Callback for backend_new_output_.
+  void new_output(listener::wlr_backend::new_output::event_type_t const& output);
 };
+
+using frame_listener_t = wl::Listener<struct wlr_output>;
+using request_state_listener_t = wl::Listener<struct wlr_output_event_request_state>;
+using destroy_listener_t = wl::Listener<struct wlr_output>;
 
 struct tinywl_output {
 	struct wl_list link;
@@ -217,6 +203,15 @@ struct tinywl_output {
 	struct wl_listener request_state;
 	struct wl_listener destroy;
 };
+
+using map_listener_t = wl::Listener<std::nullptr_t>;
+using unmap_listener_t = wl::Listener<std::nullptr_t>;
+using commit_listener_t = wl::Listener<struct wlr_surface>;
+using toplevel_destroy_listener_t = wl::Listener<std::nullptr_t>;
+using request_move_listener_t = wl::Listener<struct wlr_xdg_toplevel_move_event>;
+using request_resize_listener_t = wl::Listener<struct wlr_xdg_toplevel_resize_event>;
+using request_maximize_listener_t = wl::Listener<std::nullptr_t>;
+using request_fullscreen_listener_t = wl::Listener<std::nullptr_t>;
 
 struct tinywl_toplevel {
 	struct wl_list link;
@@ -233,11 +228,18 @@ struct tinywl_toplevel {
 	struct wl_listener request_fullscreen;
 };
 
+using popup_commit_listener_t = wl::Listener<struct wlr_surface>;
+using popup_destroy_listener_t = wl::Listener<std::nullptr_t>;
+
 struct tinywl_popup {
 	struct wlr_xdg_popup *xdg_popup;
 	struct wl_listener commit;
 	struct wl_listener destroy;
 };
+
+using keyboard_modifiers_listener_t = wl::Listener<struct wlr_keyboard>;
+using keyboard_key_listener_t = wl::Listener<struct wlr_keyboard_key_event>;
+using keyboard_destroy_listener_t = wl::Listener<struct wlr_input_device>;
 
 struct tinywl_keyboard {
 	struct wl_list link;
@@ -432,7 +434,7 @@ static void server_new_pointer(struct tinywl_server *server,
 	wlr_cursor_attach_input_device(server->cursor, device);
 }
 
-void tinywl_server::new_input(new_input_listener_t::event_type_t const& device)
+void tinywl_server::backend_new_input(listener::wlr_backend::new_input::event_type_t const& device)
 {
   /* This event is raised by the backend when a new input device becomes available. */
   switch (device->type)
@@ -455,7 +457,7 @@ void tinywl_server::new_input(new_input_listener_t::event_type_t const& device)
   wlr_seat_set_capabilities(seat, caps);
 }
 
-void tinywl_server::seat_request_cursor(seat_request_cursor_listener_t::event_type_t const& event)
+void tinywl_server::seat_request_set_cursor(listener::wlr_seat::request_set_cursor::event_type_t const& event)
 {
   /* This event is raised by the seat when a client provides a cursor image */
   struct wlr_seat_client *focused_client = seat->pointer_state.focused_client;
@@ -471,7 +473,7 @@ void tinywl_server::seat_request_cursor(seat_request_cursor_listener_t::event_ty
   }
 }
 
-void tinywl_server::seat_request_set_selection(seat_request_set_selection_listener_t::event_type_t const& event)
+void tinywl_server::seat_request_set_selection(listener::wlr_seat::request_set_selection::event_type_t const& event)
 {
   /* This event is raised by the seat when a client wants to set the selection,
    * usually when the user copies something. wlroots allows compositors to
@@ -623,7 +625,7 @@ static void process_cursor_motion(struct tinywl_server *server, uint32_t time) {
 	}
 }
 
-void tinywl_server::cursor_motion(cursor_motion_listener_t::event_type_t const& event)
+void tinywl_server::cursor_motion(listener::wlr_cursor::motion::event_type_t const& event)
 {
   /* This event is forwarded by the cursor when a pointer emits a _relative_
    * pointer motion event (i.e. a delta) */
@@ -632,12 +634,11 @@ void tinywl_server::cursor_motion(cursor_motion_listener_t::event_type_t const& 
    * special configuration applied for the specific input device which
    * generated the event. You can pass NULL for the device if you want to move
    * the cursor around without any input. */
-  wlr_cursor_move(cursor, &event->pointer->base,
-      event->delta_x, event->delta_y);
+  wlr_cursor_move(cursor, &event->pointer->base, event->delta_x, event->delta_y);
   process_cursor_motion(this, event->time_msec);
 }
 
-void tinywl_server::cursor_motion_absolute(cursor_motion_absolute_listener_t::event_type_t const& event)
+void tinywl_server::cursor_motion_absolute(listener::wlr_cursor::motion_absolute::event_type_t const& event)
 {
   /* This event is forwarded by the cursor when a pointer emits an _absolute_
    * motion event, from 0..1 on each axis. This happens, for example, when
@@ -645,12 +646,11 @@ void tinywl_server::cursor_motion_absolute(cursor_motion_absolute_listener_t::ev
    * move the mouse over the window. You could enter the window from any edge,
    * so we have to warp the mouse there. There is also some hardware which
    * emits these events. */
-  wlr_cursor_warp_absolute(cursor, &event->pointer->base, event->x,
-    event->y);
+  wlr_cursor_warp_absolute(cursor, &event->pointer->base, event->x, event->y);
   process_cursor_motion(this, event->time_msec);
 }
 
-void tinywl_server::cursor_button(cursor_button_listener_t::event_type_t const& event)
+void tinywl_server::cursor_button(listener::wlr_cursor::button::event_type_t const& event)
 {
   /* This event is forwarded by the cursor when a pointer emits a button
    * event. */
@@ -670,7 +670,7 @@ void tinywl_server::cursor_button(cursor_button_listener_t::event_type_t const& 
   }
 }
 
-void tinywl_server::cursor_axis(cursor_axis_listener_t::event_type_t const& event)
+void tinywl_server::cursor_axis(listener::wlr_cursor::axis::event_type_t const& event)
 {
   /* This event is forwarded by the cursor when a pointer emits an axis event,
    * for example when you move the scroll wheel. */
@@ -680,7 +680,7 @@ void tinywl_server::cursor_axis(cursor_axis_listener_t::event_type_t const& even
       event->delta_discrete, event->source, event->relative_direction);
 }
 
-void tinywl_server::cursor_frame(cursor_frame_listener_t::event_type_t const& data)
+void tinywl_server::cursor_frame(listener::wlr_cursor::frame::event_type_t const& data)
 {
   /* This event is forwarded by the cursor when a pointer emits an frame
    * event. Frame events are sent after regular pointer events to group
@@ -728,7 +728,7 @@ static void output_destroy(struct wl_listener *listener, void *data) {
   free(output);
 }
 
-void tinywl_server::new_output(new_output_listener_t::event_type_t const& wlr_output)
+void tinywl_server::new_output(listener::wlr_backend::new_output::event_type_t const& wlr_output)
 {
   /* This event is raised by the backend when a new output (aka a display or
    * monitor) becomes available. */
@@ -927,7 +927,7 @@ static void xdg_toplevel_request_fullscreen(
 }
 
 /* This event is raised when a client creates a new toplevel (application window). */
-void tinywl_server::new_xdg_toplevel(new_xdg_toplevel_listener_t::event_type_t const& xdg_toplevel)
+void tinywl_server::xdg_shell_new_toplevel(listener::wlr_xdg_shell::new_toplevel::event_type_t const& xdg_toplevel)
 {
   /* Allocate a tinywl_toplevel for this surface */
   struct tinywl_toplevel *toplevel = (struct tinywl_toplevel *)calloc(1, sizeof(*toplevel));
@@ -986,7 +986,7 @@ static void xdg_popup_destroy(struct wl_listener *listener, void *data) {
   free(popup);
 }
 
-void tinywl_server::new_xdg_popup(new_xdg_popup_listener_t::event_type_t const& xdg_popup)
+void tinywl_server::xdg_shell_new_popup(listener::wlr_xdg_shell::new_popup::event_type_t const& xdg_popup)
 {
   /* This event is raised when a client creates a new popup. */
   struct tinywl_popup *popup = (struct tinywl_popup *)calloc(1, sizeof(*popup));
@@ -1089,10 +1089,10 @@ int main(int argc, char *argv[]) {
    * backend. */
   wl_list_init(&server.outputs);
 
-  // Initialize the server.new_output_ listener.
-  server.new_output_.init(&server.backend->events.new_output);
-  // Request a callback to server.new_output upon the new_output_ event.
-  server.new_output_handle_ = server.new_output_.request(server, &tinywl_server::new_output);
+  // Initialize the server.backend_new_output_ listener.
+  server.backend_new_output_.init(&server.backend->events.new_output);
+  // Request a callback to server.new_output upon the backend_new_output_ event.
+  server.backend_new_output_handle_ = server.backend_new_output_.request(server, &tinywl_server::new_output);
 
   /* Initialize the scene graph. This is a wlroots abstraction that handles all
    * rendering and damage tracking. All the compositor author needs to do
@@ -1112,15 +1112,16 @@ int main(int argc, char *argv[]) {
   wl_list_init(&server.toplevels);
   server.xdg_shell = wlr_xdg_shell_create(server.wl_display, 3);
 
-  // Initialize the server.new_xdg_toplevel_ listener.
-  server.new_xdg_toplevel_.init(&server.xdg_shell->events.new_toplevel);
-  // Request a callback to server.new_xdg_toplevel upon the new_xdg_toplevel_ event.
-  server.new_xdg_toplevel_handle_ = server.new_xdg_toplevel_.request(server, &tinywl_server::new_xdg_toplevel);
+  // Initialize the server.xdg_shell_new_toplevel_ listener.
 
-  // Initialize the server.new_xdg_popup_ listener.
-  server.new_xdg_popup_.init(&server.xdg_shell->events.new_popup);
-  // Request a callback to server.new_xdg_popup upon the new_xdg_popup_ event.
-  server.new_xdg_popup_handle_ = server.new_xdg_popup_.request(server, &tinywl_server::new_xdg_popup);
+  server.xdg_shell_new_toplevel_.init(&server.xdg_shell->events.new_toplevel);
+  // Request a callback to server.xdg_shell_new_toplevel upon the xdg_shell_new_toplevel_ event.
+  server.xdg_shell_new_toplevel_handle_ = server.xdg_shell_new_toplevel_.request(server, &tinywl_server::xdg_shell_new_toplevel);
+
+  // Initialize the server.xdg_shell_new_popup_ listener.
+  server.xdg_shell_new_popup_.init(&server.xdg_shell->events.new_popup);
+  // Request a callback to server.xdg_shell_new_popup upon the xdg_shell_new_popup_ event.
+  server.xdg_shell_new_popup_handle_ = server.xdg_shell_new_popup_.request(server, &tinywl_server::xdg_shell_new_popup);
 
   /*
    * Creates a cursor, which is a wlroots utility for tracking the cursor
@@ -1171,16 +1172,16 @@ int main(int argc, char *argv[]) {
    */
   wl_list_init(&server.keyboards);
 
-  // Initialize the server.new_input_ listener.
-  server.new_input_.init(&server.backend->events.new_input);
-  // Request a callback to server.new_input upon the new_input_ event.
-  server.new_input_handle_ = server.new_input_.request(server, &tinywl_server::new_input);
+  // Initialize the server.backend_new_input_ listener.
+  server.backend_new_input_.init(&server.backend->events.new_input);
+  // Request a callback to server.new_input upon the backend_new_input_ event.
+  server.backend_new_input_handle_ = server.backend_new_input_.request(server, &tinywl_server::backend_new_input);
 
   server.seat = wlr_seat_create(server.wl_display, "seat0");
 
-  // Initialize the seat_request_cursor listener.
-  server.seat_request_cursor_.init(&server.seat->events.request_set_cursor);
-  server.seat_request_cursor_handle_ = server.seat_request_cursor_.request(server, &tinywl_server::seat_request_cursor);
+  // Initialize the seat_request_set_cursor listener.
+  server.seat_request_set_cursor_.init(&server.seat->events.request_set_cursor);
+  server.seat_request_set_cursor_handle_ = server.seat_request_set_cursor_.request(server, &tinywl_server::seat_request_set_cursor);
 
   // Initialize the seat_request_set_selection listener.
   server.seat_request_set_selection_.init(&server.seat->events.request_set_selection);

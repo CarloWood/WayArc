@@ -59,8 +59,11 @@ target_link_libraries(tinywl++
 # Required define when using the unstable (git) version of wlroots.
 target_compile_definitions(tinywl++ PUBLIC WLR_USE_UNSTABLE)
 
-# This directory contains the generated xdg-shell-protocol.h header.
-target_include_directories(tinywl++ PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+target_include_directories(tinywl++
+  PRIVATE
+    ${CMAKE_CURRENT_BINARY_DIR}         # This directory contains the generated xdg-shell-protocol.h header.
+    ${CMAKE_CURRENT_SOURCE_DIR}         # So that we can include "wl/Listener.h" from "wlr/events.h".
+)
 
 #==============================================================================
 # WayArc
