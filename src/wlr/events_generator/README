@@ -1,4 +1,5 @@
-This directory contains scripts and programs that were used to generate events.h.
+This directory contains scripts and programs that were used to generate
+events.h and listener.h.
 
 To run these scripts, you need to clone wlroots, configure it and build it.
 For example:
@@ -28,19 +29,15 @@ wlr_device, change, ../wlroots/backend/session/session.c:216
 wlr_device, remove, ../wlroots/backend/session/session.c:225
 ...etc
 
-Next, run:
+Those line numbers must match the current source tree of wlroots when
+running analyzer; therefore - if wlroots is significantly changed (aka,
+new signals have been added) - always run renamer.sh first, followed
+by analyzer, after updating the wlroots git repository.
+
+Thus, after (re)generating renamer.out, run:
 
   g++ -std=c++20 analyzer.cpp -o analyzer
   ./analyzer $WLROOTS_BUILDDIR renamer.out | LC_ALL=C sort > analyzer.out
 
-  g++ -std=c++20 generate.cpp -o generate
-
-To generate listener.h run:
-
-  cp listener_header.h listener.h
-  ./generate --listener analyzer.out >> listener.h
-
-To generate events.h run:
-
-  cp events_header.h events.h
-  ./generate --events analyzer.out >> events.h
+The generation of events.h and listener.h is performed from custom rules
+in the CMakeLists.txt of src/wlr, using this analyzer.out file.

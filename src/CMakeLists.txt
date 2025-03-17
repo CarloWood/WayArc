@@ -32,6 +32,9 @@ add_custom_command(
 # Create a target that depends on the generated file.
 add_custom_target(xdg-shell-protocol DEPENDS ${XDG_SHELL_PROTOCOL_H})
 
+# This directory contains generated headers.
+add_subdirectory(wlr)
+
 #==============================================================================
 # tinywl
 
@@ -49,7 +52,7 @@ target_include_directories(tinywl PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
 # tinywl++
 
 add_executable(tinywl++ tinywl.cpp wlr/Scene.cxx)
-add_dependencies(tinywl++ xdg-shell-protocol)
+add_dependencies(tinywl++ xdg-shell-protocol generated-events-headers)
 target_link_libraries(tinywl++
   PRIVATE
     ${AICXX_OBJECTS_LIST}
@@ -69,7 +72,7 @@ target_include_directories(tinywl++
 # WayArc
 
 add_executable(WayArc WayArc.cxx)
-add_dependencies(WayArc xdg-shell-protocol)
+add_dependencies(WayArc xdg-shell-protocol generated-events-headers)
 target_link_libraries(WayArc
   PRIVATE
     ${AICXX_OBJECTS_LIST}

@@ -128,13 +128,25 @@ int main(int argc, char* argv[])
 
     if (output == listener)
     {
+      // Print footer of listener.h.
       std::cout << "\n";
       std::cout << "} // namespace listener\n";
+      std::cout << "\n";
+      std::cout << "#undef DECLARE_LISTENER\n";
+      std::cout << "#undef DECLARE_LISTENERS\n";
       break;
     }
     else if (i == 0)
-      std::cout << "} // extern \"C\"\n\nnamespace wlr::events {\n";
+    {
+      // Print footer of part 1, and header of part 2, of events.h.
+      std::cout << "} // extern \"C\"\n";
+      std::cout << "\n";
+      std::cout << "namespace wlr::events {\n";
+    }
     else
+    {
+      // Print footer of events.h.
       std::cout << "} // namespace wlr::events\n";
+    }
   }
 }
