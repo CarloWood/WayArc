@@ -4,6 +4,7 @@
 #include <cstdbool>
 #include <cstdlib>
 #include <ctime>
+#include <list>
 #include <getopt.h>
 #include <unistd.h>
 #include <stdio.h>
@@ -37,9 +38,6 @@ extern "C" {
 #include "wlr/Scene.h"
 #include "wl/Listener.h"
 #include "debug.h"
-
-#undef wl_container_of
-#define wl_container_of(...) nullptr
 
 std::ostream& operator<<(std::ostream& os, struct wlr_xdg_toplevel const& xdg_toplevel)
 {
@@ -113,11 +111,87 @@ std::ostream& operator<<(std::ostream& os, struct wlr_output_event_request_state
   return os;
 }
 
+std::ostream& operator<<(std::ostream& os, struct wlr_keyboard const& keyboard)
+{
+  os << "TODO: print wlr_keyboard";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_keyboard_key_event const& keyboard)
+{
+  os << "TODO: print wlr_keyboard_key_event";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_surface const& keyboard)
+{
+  os << "TODO: print wlr_surface";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_xdg_toplevel_move_event const& keyboard)
+{
+  os << "TODO: print wlr_xdg_toplevel_move_event";
+  return os;
+}
+
+std::ostream& operator<<(std::ostream& os, struct wlr_xdg_toplevel_resize_event const& keyboard)
+{
+  os << "TODO: print wlr_xdg_toplevel_resize_event";
+  return os;
+}
+
 /* For brevity's sake, struct members are annotated where they are used. */
 enum tinywl_cursor_mode {
 	TINYWL_CURSOR_PASSTHROUGH,
 	TINYWL_CURSOR_MOVE,
 	TINYWL_CURSOR_RESIZE,
+};
+
+struct tinywl_server;
+
+struct tinywl_toplevel
+{
+  struct tinywl_server *server;
+
+  struct    wlr_xdg_toplevel*                                   xdg_toplevel_;
+  listener::wlr_xdg_toplevel::destroy                           xdg_toplevel_destroy_;
+  listener::wlr_xdg_toplevel::destroy::handle_t                 xdg_toplevel_destroy_handle_;
+  listener::wlr_xdg_toplevel::request_move                      xdg_toplevel_request_move_;
+  listener::wlr_xdg_toplevel::request_move::handle_t            xdg_toplevel_request_move_handle_;
+  listener::wlr_xdg_toplevel::request_resize                    xdg_toplevel_request_resize_;
+  listener::wlr_xdg_toplevel::request_resize::handle_t          xdg_toplevel_request_resize_handle_;
+  listener::wlr_xdg_toplevel::request_maximize                  xdg_toplevel_request_maximize_;
+  listener::wlr_xdg_toplevel::request_maximize::handle_t        xdg_toplevel_request_maximize_handle_;
+  listener::wlr_xdg_toplevel::request_fullscreen                xdg_toplevel_request_fullscreen_;
+  listener::wlr_xdg_toplevel::request_fullscreen::handle_t      xdg_toplevel_request_fullscreen_handle_;
+
+  listener::wlr_surface::map                                    surface_map_;                   // xdg_toplevel_->base->surface
+  listener::wlr_surface::map::handle_t                          surface_map_handle_;
+  listener::wlr_surface::unmap                                  surface_unmap_;                 // xdg_toplevel_->base->surface
+  listener::wlr_surface::unmap::handle_t                        surface_unmap_handle_;
+  listener::wlr_surface::commit                                 surface_commit_;                // xdg_toplevel_->base->surface
+  listener::wlr_surface::commit::handle_t                       surface_commit_handle_;
+
+//      struct wlr_scene_tree *scene_tree;
+
+  // Callback for xdg_toplevel_destroy_.
+  void xdg_toplevel_destroy(listener::wlr_xdg_toplevel::destroy::event_type_t const&);
+  // Callback for xdg_toplevel_request_move_.
+  void xdg_toplevel_request_move(listener::wlr_xdg_toplevel::request_move::event_type_t const&);
+  // Callback for xdg_toplevel_request_resize_.
+  void xdg_toplevel_request_resize(listener::wlr_xdg_toplevel::request_resize::event_type_t const& event);
+  // Callback for xdg_toplevel_request_maximize_.
+  void xdg_toplevel_request_maximize(listener::wlr_xdg_toplevel::request_maximize::event_type_t const&);
+  // Callback for xdg_toplevel_request_fullscreen_.
+  void xdg_toplevel_request_fullscreen(listener::wlr_xdg_toplevel::request_fullscreen::event_type_t const&);
+
+  // Callback for surface_map_.
+  void surface_map(listener::wlr_surface::map::event_type_t const& data);
+  // Callback for surface_unmap_.
+  void surface_unmap(listener::wlr_surface::unmap::event_type_t const& data);
+  // Callback for surface_commit_.
+  void surface_commit(listener::wlr_surface::commit::event_type_t const& data);
 };
 
 struct tinywl_server
@@ -141,7 +215,7 @@ struct tinywl_server
   listener::wlr_xdg_shell::new_popup                    xdg_shell_new_popup_;
   listener::wlr_xdg_shell::new_popup::handle_t          xdg_shell_new_popup_handle_;
 
-  struct wl_list toplevels;
+  std::list<tinywl_toplevel*> toplevels_;
 
   struct    wlr_cursor*                                 cursor;
   listener::wlr_cursor::motion                          cursor_motion_;
@@ -218,38 +292,39 @@ struct tinywl_output
   void output_destroy(listener::wlr_output::destroy::event_type_t const& data);
 };
 
-struct tinywl_toplevel
-{
-  struct wl_list link;
-  struct tinywl_server *server;
-  struct wlr_xdg_toplevel *xdg_toplevel;
-//	struct wlr_scene_tree *scene_tree;
-  struct wl_listener map;
-  struct wl_listener unmap;
-  struct wl_listener commit;
-  struct wl_listener destroy;
-  struct wl_listener request_move;
-  struct wl_listener request_resize;
-  struct wl_listener request_maximize;
-  struct wl_listener request_fullscreen;
-};
-
 struct tinywl_popup
 {
-  struct wlr_xdg_popup *xdg_popup;
-  struct wl_listener commit;
-  struct wl_listener destroy;
+  struct    wlr_xdg_popup* xdg_popup;
+  listener::wlr_surface::commit                 surface_commit_;                // xdg_popup->base->surface
+  listener::wlr_surface::commit::handle_t       surface_commit_handle_;
+  listener::wlr_xdg_popup::destroy              xdg_popup_destroy_;
+  listener::wlr_xdg_popup::destroy::handle_t    xdg_popup_destroy_handle_;
+
+  // Callback for surface_commit_.
+  void surface_commit(listener::wlr_surface::commit::event_type_t const& data);
+  // Callback for xdg_popup_destroy_.
+  void xdg_popup_destroy(listener::wlr_xdg_popup::destroy::event_type_t const& data);
 };
 
 struct tinywl_keyboard
 {
   struct wl_list link;
-  struct tinywl_server *server;
-  struct wlr_keyboard *wlr_keyboard;
+  struct tinywl_server* server;
 
-  struct wl_listener modifiers;
-  struct wl_listener key;
-  struct wl_listener destroy;
+  struct    wlr_keyboard* wlr_keyboard;
+  listener::wlr_keyboard::modifiers             keyboard_modifiers_;
+  listener::wlr_keyboard::modifiers::handle_t   keyboard_modifiers_handle_;
+  listener::wlr_keyboard::key                   keyboard_key_;
+  listener::wlr_keyboard::key::handle_t         keyboard_key_handle_;
+  listener::wlr_input_device::destroy           input_device_destroy_;
+  listener::wlr_input_device::destroy::handle_t input_device_destroy_handle_;
+
+  // Callback for surface_modifiers_.
+  void keyboard_modifiers(listener::wlr_keyboard::modifiers::event_type_t const& data);
+  // Callback for surface_key_.
+  void keyboard_key(listener::wlr_keyboard::key::event_type_t const& data);
+  // Callback for surface_destroy_.
+  void input_device_destroy(listener::wlr_input_device::destroy::event_type_t const& data);
 };
 
 static void focus_toplevel(struct tinywl_toplevel *toplevel) {
@@ -260,7 +335,7 @@ static void focus_toplevel(struct tinywl_toplevel *toplevel) {
 	struct tinywl_server *server = toplevel->server;
 	struct wlr_seat *seat = server->seat;
 	struct wlr_surface *prev_surface = seat->keyboard_state.focused_surface;
-	struct wlr_surface *surface = toplevel->xdg_toplevel->base->surface;
+	struct wlr_surface *surface = toplevel->xdg_toplevel_->base->surface;
 	if (prev_surface == surface) {
 		/* Don't re-focus an already focused surface. */
 		return;
@@ -282,10 +357,11 @@ static void focus_toplevel(struct tinywl_toplevel *toplevel) {
 #if 0 // FIXME: we don't have `toplevel->scene_tree`
 	wlr_scene_node_raise_to_top(&toplevel->scene_tree->node);
 #endif
-	wl_list_remove(&toplevel->link);
-	wl_list_insert(&server->toplevels, &toplevel->link);
+        auto toplevel_iter = std::find(server->toplevels_.begin(), server->toplevels_.end(), toplevel);
+        server->toplevels_.splice(server->toplevels_.begin(), server->toplevels_, toplevel_iter);
+
 	/* Activate the new surface */
-	wlr_xdg_toplevel_set_activated(toplevel->xdg_toplevel, true);
+	wlr_xdg_toplevel_set_activated(toplevel->xdg_toplevel_, true);
 	/*
 	 * Tell the seat to have the keyboard enter this surface. wlroots will keep
 	 * track of this and automatically send key events to the appropriate
@@ -297,22 +373,19 @@ static void focus_toplevel(struct tinywl_toplevel *toplevel) {
 	}
 }
 
-static void keyboard_handle_modifiers(
-		struct wl_listener *listener, void *data) {
-	/* This event is raised when a modifier key, such as shift or alt, is
-	 * pressed. We simply communicate this to the client. */
-	struct tinywl_keyboard *keyboard =
-		wl_container_of(listener, keyboard, modifiers);
-	/*
-	 * A seat can only have one keyboard, but this is a limitation of the
-	 * Wayland protocol - not wlroots. We assign all connected keyboards to the
-	 * same seat. You can swap out the underlying wlr_keyboard like this and
-	 * wlr_seat handles this transparently.
-	 */
-	wlr_seat_set_keyboard(keyboard->server->seat, keyboard->wlr_keyboard);
-	/* Send modifiers to the client. */
-	wlr_seat_keyboard_notify_modifiers(keyboard->server->seat,
-		&keyboard->wlr_keyboard->modifiers);
+/* This event is raised when a modifier key, such as shift or alt, is
+ * pressed. We simply communicate this to the client. */
+void tinywl_keyboard::keyboard_modifiers(listener::wlr_keyboard::modifiers::event_type_t const& data)
+{
+  /*
+   * A seat can only have one keyboard, but this is a limitation of the
+   * Wayland protocol - not wlroots. We assign all connected keyboards to the
+   * same seat. You can swap out the underlying wlr_keyboard like this and
+   * wlr_seat handles this transparently.
+   */
+  wlr_seat_set_keyboard(server->seat, wlr_keyboard);
+  /* Send modifiers to the client. */
+  wlr_seat_keyboard_notify_modifiers(server->seat, &wlr_keyboard->modifiers);
 }
 
 static bool handle_keybinding(struct tinywl_server *server, xkb_keysym_t sym) {
@@ -330,12 +403,11 @@ static bool handle_keybinding(struct tinywl_server *server, xkb_keysym_t sym) {
 	case XKB_KEY_F1:
               {
 		/* Cycle to the next toplevel */
-		if (wl_list_length(&server->toplevels) < 2) {
+		if (server->toplevels_.size() < 2) {
 			break;
 		}
-		struct tinywl_toplevel *next_toplevel =
-			wl_container_of(server->toplevels.prev, next_toplevel, link);
-		focus_toplevel(next_toplevel);
+                auto next_toplevel_iter = std::prev(server->toplevels_.end());
+		focus_toplevel(*next_toplevel_iter);
 		break;
               }
 	default:
@@ -344,60 +416,55 @@ static bool handle_keybinding(struct tinywl_server *server, xkb_keysym_t sym) {
 	return true;
 }
 
-static void keyboard_handle_key(
-		struct wl_listener *listener, void *data) {
-	/* This event is raised when a key is pressed or released. */
-	struct tinywl_keyboard *keyboard =
-		wl_container_of(listener, keyboard, key);
-	struct tinywl_server *server = keyboard->server;
-	struct wlr_keyboard_key_event *event = (struct wlr_keyboard_key_event *)(data);
-	struct wlr_seat *seat = server->seat;
+/* This event is raised when a key is pressed or released. */
+void tinywl_keyboard::keyboard_key(listener::wlr_keyboard::key::event_type_t const& event)
+{
+  struct wlr_seat* seat = server->seat;
 
-	/* Translate libinput keycode -> xkbcommon */
-	uint32_t keycode = event->keycode + 8;
-	/* Get a list of keysyms based on the keymap for this keyboard */
-	const xkb_keysym_t *syms;
-	int nsyms = xkb_state_key_get_syms(
-			keyboard->wlr_keyboard->xkb_state, keycode, &syms);
+  /* Translate libinput keycode -> xkbcommon */
+  uint32_t keycode = event->keycode + 8;
+  /* Get a list of keysyms based on the keymap for this keyboard */
+  const xkb_keysym_t *syms;
+  int nsyms = xkb_state_key_get_syms(wlr_keyboard->xkb_state, keycode, &syms);
 
-	bool handled = false;
-	uint32_t modifiers = wlr_keyboard_get_modifiers(keyboard->wlr_keyboard);
-	if ((modifiers & WLR_MODIFIER_ALT) &&
-			event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
-		/* If alt is held down and this button was _pressed_, we attempt to
-		 * process it as a compositor keybinding. */
-		for (int i = 0; i < nsyms; i++) {
-			handled = handle_keybinding(server, syms[i]);
-		}
-	}
+  bool handled = false;
+  uint32_t modifiers = wlr_keyboard_get_modifiers(wlr_keyboard);
+  if ((modifiers & WLR_MODIFIER_ALT) &&
+                  event->state == WL_KEYBOARD_KEY_STATE_PRESSED) {
+          /* If alt is held down and this button was _pressed_, we attempt to
+           * process it as a compositor keybinding. */
+          for (int i = 0; i < nsyms; i++) {
+                  handled = handle_keybinding(server, syms[i]);
+          }
+  }
 
-	if (!handled) {
-		/* Otherwise, we pass it along to the client. */
-		wlr_seat_set_keyboard(seat, keyboard->wlr_keyboard);
-		wlr_seat_keyboard_notify_key(seat, event->time_msec,
-			event->keycode, event->state);
-	}
+  if (!handled) {
+          /* Otherwise, we pass it along to the client. */
+          wlr_seat_set_keyboard(seat, wlr_keyboard);
+          wlr_seat_keyboard_notify_key(seat, event->time_msec,
+                  event->keycode, event->state);
+  }
 }
 
-static void keyboard_handle_destroy(struct wl_listener *listener, void *data) {
-	/* This event is raised by the keyboard base wlr_input_device to signal
-	 * the destruction of the wlr_keyboard. It will no longer receive events
-	 * and should be destroyed.
-	 */
-	struct tinywl_keyboard *keyboard =
-		wl_container_of(listener, keyboard, destroy);
-	wl_list_remove(&keyboard->modifiers.link);
-	wl_list_remove(&keyboard->key.link);
-	wl_list_remove(&keyboard->destroy.link);
-	wl_list_remove(&keyboard->link);
-	free(keyboard);
+/* This event is raised by the keyboard base wlr_input_device to signal
+ * the destruction of the wlr_keyboard. It will no longer receive events
+ * and should be destroyed.
+ */
+void tinywl_keyboard::input_device_destroy(listener::wlr_input_device::destroy::event_type_t const& data)
+{
+  keyboard_modifiers_handle_.cancel();
+  keyboard_key_handle_.cancel();
+  input_device_destroy_handle_.cancel();
+
+  wl_list_remove(&link);
+
+  free(this);   // FIXME
 }
 
-static void server_new_keyboard(struct tinywl_server *server,
-		struct wlr_input_device *device) {
+static void server_new_keyboard(struct tinywl_server *server, struct wlr_input_device *device) {
 	struct wlr_keyboard *wlr_keyboard = wlr_keyboard_from_input_device(device);
 
-	struct tinywl_keyboard *keyboard = (struct tinywl_keyboard *)calloc(1, sizeof(*keyboard));
+	tinywl_keyboard* keyboard = new tinywl_keyboard;
 	keyboard->server = server;
 	keyboard->wlr_keyboard = wlr_keyboard;
 
@@ -413,12 +480,12 @@ static void server_new_keyboard(struct tinywl_server *server,
 	wlr_keyboard_set_repeat_info(wlr_keyboard, 25, 600);
 
 	/* Here we set up listeners for keyboard events. */
-	keyboard->modifiers.notify = keyboard_handle_modifiers;
-	wl_signal_add(&wlr_keyboard->events.modifiers, &keyboard->modifiers);
-	keyboard->key.notify = keyboard_handle_key;
-	wl_signal_add(&wlr_keyboard->events.key, &keyboard->key);
-	keyboard->destroy.notify = keyboard_handle_destroy;
-	wl_signal_add(&device->events.destroy, &keyboard->destroy);
+        keyboard->keyboard_modifiers_.init(&wlr_keyboard->events.modifiers);
+        keyboard->keyboard_modifiers_handle_ = keyboard->keyboard_modifiers_.request(*keyboard, &tinywl_keyboard::keyboard_modifiers);
+        keyboard->keyboard_key_.init(&wlr_keyboard->events.key);
+        keyboard->keyboard_key_handle_ = keyboard->keyboard_key_.request(*keyboard, &tinywl_keyboard::keyboard_key);
+        keyboard->input_device_destroy_.init(&device->events.destroy);
+        keyboard->input_device_destroy_handle_ = keyboard->input_device_destroy_.request(*keyboard, &tinywl_keyboard::input_device_destroy);
 
 	wlr_seat_set_keyboard(server->seat, keyboard->wlr_keyboard);
 
@@ -572,7 +639,7 @@ static void process_cursor_resize(struct tinywl_server *server) {
 		}
 	}
 
-	struct wlr_box *geo_box = &toplevel->xdg_toplevel->base->geometry;
+	struct wlr_box *geo_box = &toplevel->xdg_toplevel_->base->geometry;
 #if 0 // FIXME: we don't have `toplevel->scene_tree`
 	wlr_scene_node_set_position(&toplevel->scene_tree->node,
 		new_left - geo_box->x, new_top - geo_box->y);
@@ -580,7 +647,7 @@ static void process_cursor_resize(struct tinywl_server *server) {
 
 	int new_width = new_right - new_left;
 	int new_height = new_bottom - new_top;
-	wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, new_width, new_height);
+	wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel_, new_width, new_height);
 }
 
 static void process_cursor_motion(struct tinywl_server *server, uint32_t time) {
@@ -754,7 +821,7 @@ void tinywl_server::new_output(listener::wlr_backend::new_output::event_type_t c
   wlr_output_state_finish(&state);
 
   /* Allocates and configures our state for this output */
-  struct tinywl_output *output = (struct tinywl_output *)calloc(1, sizeof(*output));
+  tinywl_output* output = new tinywl_output;
   output->wlr_output_ = wlr_output;
   output->server = this;
 
@@ -791,54 +858,49 @@ void tinywl_server::new_output(listener::wlr_backend::new_output::event_type_t c
 
 /* The static functions were replaced by member functions above */
 
-static void xdg_toplevel_map(struct wl_listener *listener, void *data) {
-  /* Called when the surface is mapped, or ready to display on-screen. */
-  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, map);
+/* Called when the surface is mapped, or ready to display on-screen. */
+void tinywl_toplevel::surface_map(listener::wlr_surface::map::event_type_t const& data)
+{
+  server->toplevels_.push_front(this);
 
-  wl_list_insert(&toplevel->server->toplevels, &toplevel->link);
-
-  focus_toplevel(toplevel);
+  focus_toplevel(this);
 }
 
-static void xdg_toplevel_unmap(struct wl_listener *listener, void *data) {
-  /* Called when the surface is unmapped, and should no longer be shown. */
-  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, unmap);
-
+/* Called when the surface is unmapped, and should no longer be shown. */
+void tinywl_toplevel::surface_unmap(listener::wlr_surface::unmap::event_type_t const& data)
+{
   /* Reset the cursor mode if the grabbed toplevel was unmapped. */
-  if (toplevel == toplevel->server->grabbed_toplevel) {
-    reset_cursor_mode(toplevel->server);
+  if (this == server->grabbed_toplevel) {
+    reset_cursor_mode(server);
   }
 
-  wl_list_remove(&toplevel->link);
+  server->toplevels_.remove(this);
 }
 
-static void xdg_toplevel_commit(struct wl_listener *listener, void *data) {
-  /* Called when a new surface state is committed. */
-  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, commit);
-
-  if (toplevel->xdg_toplevel->base->initial_commit) {
+/* Called when a new surface state is committed. */
+void tinywl_toplevel::surface_commit(listener::wlr_surface::commit::event_type_t const& data)
+{
+  if (xdg_toplevel_->base->initial_commit) {
     /* When an xdg_surface performs an initial commit, the compositor must
      * reply with a configure so the client can map the surface. tinywl
      * configures the xdg_toplevel with 0,0 size to let the client pick the
      * dimensions itself. */
-    wlr_xdg_toplevel_set_size(toplevel->xdg_toplevel, 0, 0);
+    wlr_xdg_toplevel_set_size(xdg_toplevel_, 0, 0);
   }
 }
 
-static void xdg_toplevel_destroy(struct wl_listener *listener, void *data) {
-  /* Called when the xdg_toplevel is destroyed. */
-  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, destroy);
+void tinywl_toplevel::xdg_toplevel_destroy(listener::wlr_xdg_toplevel::destroy::event_type_t const&)
+{
+  xdg_toplevel_destroy_handle_.cancel();
+  xdg_toplevel_request_move_handle_.cancel();
+  xdg_toplevel_request_resize_handle_.cancel();
+  xdg_toplevel_request_maximize_handle_.cancel();
+  xdg_toplevel_request_fullscreen_handle_.cancel();
+  surface_map_handle_.cancel();
+  surface_unmap_handle_.cancel();
+  surface_commit_handle_.cancel();
 
-  wl_list_remove(&toplevel->map.link);
-  wl_list_remove(&toplevel->unmap.link);
-  wl_list_remove(&toplevel->commit.link);
-  wl_list_remove(&toplevel->destroy.link);
-  wl_list_remove(&toplevel->request_move.link);
-  wl_list_remove(&toplevel->request_resize.link);
-  wl_list_remove(&toplevel->request_maximize.link);
-  wl_list_remove(&toplevel->request_fullscreen.link);
-
-  free(toplevel);
+  free(this);   // FIXME: really?
 }
 
 static void begin_interactive(struct tinywl_toplevel *toplevel,
@@ -874,31 +936,28 @@ static void begin_interactive(struct tinywl_toplevel *toplevel,
 #endif
 }
 
-static void xdg_toplevel_request_move(
-    struct wl_listener *listener, void *data) {
+void tinywl_toplevel::xdg_toplevel_request_move(listener::wlr_xdg_toplevel::request_move::event_type_t const&)
+{
   /* This event is raised when a client would like to begin an interactive
    * move, typically because the user clicked on their client-side
    * decorations. Note that a more sophisticated compositor should check the
    * provided serial against a list of button press serials sent to this
    * client, to prevent the client from requesting this whenever they want. */
-  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, request_move);
-  begin_interactive(toplevel, TINYWL_CURSOR_MOVE, 0);
+  begin_interactive(this, TINYWL_CURSOR_MOVE, 0);
 }
 
-static void xdg_toplevel_request_resize(
-    struct wl_listener *listener, void *data) {
+void tinywl_toplevel::xdg_toplevel_request_resize(listener::wlr_xdg_toplevel::request_resize::event_type_t const& event)
+{
   /* This event is raised when a client would like to begin an interactive
    * resize, typically because the user clicked on their client-side
    * decorations. Note that a more sophisticated compositor should check the
    * provided serial against a list of button press serials sent to this
    * client, to prevent the client from requesting this whenever they want. */
-  struct wlr_xdg_toplevel_resize_event *event = (struct wlr_xdg_toplevel_resize_event *)data;
-  struct tinywl_toplevel *toplevel = wl_container_of(listener, toplevel, request_resize);
-  begin_interactive(toplevel, TINYWL_CURSOR_RESIZE, event->edges);
+  begin_interactive(this, TINYWL_CURSOR_RESIZE, event->edges);
 }
 
-static void xdg_toplevel_request_maximize(
-    struct wl_listener *listener, void *data) {
+void tinywl_toplevel::xdg_toplevel_request_maximize(listener::wlr_xdg_toplevel::request_maximize::event_type_t const&)
+{
   /* This event is raised when a client would like to maximize itself,
    * typically because the user clicked on the maximize button on client-side
    * decorations. tinywl doesn't support maximization, but to conform to
@@ -906,30 +965,24 @@ static void xdg_toplevel_request_maximize(
    * wlr_xdg_surface_schedule_configure() is used to send an empty reply.
    * However, if the request was sent before an initial commit, we don't do
    * anything and let the client finish the initial surface setup. */
-  struct tinywl_toplevel *toplevel =
-    wl_container_of(listener, toplevel, request_maximize);
-  if (toplevel->xdg_toplevel->base->initialized) {
-    wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
-  }
+  if (xdg_toplevel_->base->initialized)
+    wlr_xdg_surface_schedule_configure(xdg_toplevel_->base);
 }
 
-static void xdg_toplevel_request_fullscreen(
-    struct wl_listener *listener, void *data) {
+void tinywl_toplevel::xdg_toplevel_request_fullscreen(listener::wlr_xdg_toplevel::request_fullscreen::event_type_t const&)
+{
   /* Just as with request_maximize, we must send a configure here. */
-  struct tinywl_toplevel *toplevel =
-    wl_container_of(listener, toplevel, request_fullscreen);
-  if (toplevel->xdg_toplevel->base->initialized) {
-    wlr_xdg_surface_schedule_configure(toplevel->xdg_toplevel->base);
-  }
+  if (xdg_toplevel_->base->initialized)
+    wlr_xdg_surface_schedule_configure(xdg_toplevel_->base);
 }
 
 /* This event is raised when a client creates a new toplevel (application window). */
 void tinywl_server::xdg_shell_new_toplevel(listener::wlr_xdg_shell::new_toplevel::event_type_t const& xdg_toplevel)
 {
   /* Allocate a tinywl_toplevel for this surface */
-  struct tinywl_toplevel *toplevel = (struct tinywl_toplevel *)calloc(1, sizeof(*toplevel));
+  tinywl_toplevel* toplevel = new tinywl_toplevel;
   toplevel->server = this;
-  toplevel->xdg_toplevel = xdg_toplevel;
+  toplevel->xdg_toplevel_ = xdg_toplevel;
 #if 0 // FIXME
   toplevel->scene_tree =
           wlr_scene_xdg_surface_create(&toplevel->server->scene->tree, xdg_toplevel->base);
@@ -938,55 +991,52 @@ void tinywl_server::xdg_shell_new_toplevel(listener::wlr_xdg_shell::new_toplevel
 #endif
 
   /* Listen to the various events it can emit */
-  toplevel->map.notify = xdg_toplevel_map;
-  wl_signal_add(&xdg_toplevel->base->surface->events.map, &toplevel->map);
-  toplevel->unmap.notify = xdg_toplevel_unmap;
-  wl_signal_add(&xdg_toplevel->base->surface->events.unmap, &toplevel->unmap);
-  toplevel->commit.notify = xdg_toplevel_commit;
-  wl_signal_add(&xdg_toplevel->base->surface->events.commit, &toplevel->commit);
-
-  toplevel->destroy.notify = xdg_toplevel_destroy;
-  wl_signal_add(&xdg_toplevel->events.destroy, &toplevel->destroy);
+  toplevel->surface_map_.init(&xdg_toplevel->base->surface->events.map);
+  toplevel->surface_map_handle_ = toplevel->surface_map_.request(*toplevel, &tinywl_toplevel::surface_map);
+  toplevel->surface_unmap_.init(&xdg_toplevel->base->surface->events.unmap);
+  toplevel->surface_unmap_handle_ = toplevel->surface_unmap_.request(*toplevel, &tinywl_toplevel::surface_unmap);
+  toplevel->surface_commit_.init(&xdg_toplevel->base->surface->events.commit);
+  toplevel->surface_commit_handle_ = toplevel->surface_commit_.request(*toplevel, &tinywl_toplevel::surface_commit);
+  toplevel->xdg_toplevel_destroy_.init(&xdg_toplevel->events.destroy);
+  toplevel->xdg_toplevel_destroy_handle_ = toplevel->xdg_toplevel_destroy_.request(*toplevel, &tinywl_toplevel::xdg_toplevel_destroy);
 
   /* cotd */
-  toplevel->request_move.notify = xdg_toplevel_request_move;
-  wl_signal_add(&xdg_toplevel->events.request_move, &toplevel->request_move);
-  toplevel->request_resize.notify = xdg_toplevel_request_resize;
-  wl_signal_add(&xdg_toplevel->events.request_resize, &toplevel->request_resize);
-  toplevel->request_maximize.notify = xdg_toplevel_request_maximize;
-  wl_signal_add(&xdg_toplevel->events.request_maximize, &toplevel->request_maximize);
-  toplevel->request_fullscreen.notify = xdg_toplevel_request_fullscreen;
-  wl_signal_add(&xdg_toplevel->events.request_fullscreen, &toplevel->request_fullscreen);
+  toplevel->xdg_toplevel_request_move_.init(&xdg_toplevel->events.request_move);
+  toplevel->xdg_toplevel_request_move_handle_ = toplevel->xdg_toplevel_request_move_.request(*toplevel, &tinywl_toplevel::xdg_toplevel_request_move);
+  toplevel->xdg_toplevel_request_resize_.init(&xdg_toplevel->events.request_resize);
+  toplevel->xdg_toplevel_request_resize_handle_ = toplevel->xdg_toplevel_request_resize_.request(*toplevel, &tinywl_toplevel::xdg_toplevel_request_resize);
+  toplevel->xdg_toplevel_request_maximize_.init(&xdg_toplevel->events.request_maximize);
+  toplevel->xdg_toplevel_request_maximize_handle_ = toplevel->xdg_toplevel_request_maximize_.request(*toplevel, &tinywl_toplevel::xdg_toplevel_request_maximize);
+  toplevel->xdg_toplevel_request_fullscreen_.init(&xdg_toplevel->events.request_fullscreen);
+  toplevel->xdg_toplevel_request_fullscreen_handle_ = toplevel->xdg_toplevel_request_fullscreen_.request(*toplevel, &tinywl_toplevel::xdg_toplevel_request_fullscreen);
 }
 
-static void xdg_popup_commit(struct wl_listener *listener, void *data) {
-  /* Called when a new surface state is committed. */
-  struct tinywl_popup *popup = wl_container_of(listener, popup, commit);
-
-  if (popup->xdg_popup->base->initial_commit) {
+/* Called when a new surface state is committed. */
+void tinywl_popup::surface_commit(listener::wlr_surface::commit::event_type_t const& data)
+{
+  if (xdg_popup->base->initial_commit) {
     /* When an xdg_surface performs an initial commit, the compositor must
      * reply with a configure so the client can map the surface.
      * tinywl sends an empty configure. A more sophisticated compositor
      * might change an xdg_popup's geometry to ensure it's not positioned
      * off-screen, for example. */
-    wlr_xdg_surface_schedule_configure(popup->xdg_popup->base);
+    wlr_xdg_surface_schedule_configure(xdg_popup->base);
   }
 }
 
-static void xdg_popup_destroy(struct wl_listener *listener, void *data) {
-  /* Called when the xdg_popup is destroyed. */
-  struct tinywl_popup *popup = wl_container_of(listener, popup, destroy);
+/* Called when the xdg_popup is destroyed. */
+void tinywl_popup::xdg_popup_destroy(listener::wlr_xdg_popup::destroy::event_type_t const& data)
+{
+  surface_commit_handle_.cancel();
+  xdg_popup_destroy_handle_.cancel();
 
-  wl_list_remove(&popup->commit.link);
-  wl_list_remove(&popup->destroy.link);
-
-  free(popup);
+  free(this);   // FIXME: really?
 }
 
 void tinywl_server::xdg_shell_new_popup(listener::wlr_xdg_shell::new_popup::event_type_t const& xdg_popup)
 {
   /* This event is raised when a client creates a new popup. */
-  struct tinywl_popup *popup = (struct tinywl_popup *)calloc(1, sizeof(*popup));
+  tinywl_popup* popup = new tinywl_popup;
   popup->xdg_popup = xdg_popup;
 
   /* We must add xdg popups to the scene graph so they get rendered. The
@@ -1001,11 +1051,10 @@ void tinywl_server::xdg_shell_new_popup(listener::wlr_xdg_shell::new_popup::even
   xdg_popup->base->data = wlr_scene_xdg_surface_create(parent_tree, xdg_popup->base);
 #endif
 
-  popup->commit.notify = xdg_popup_commit;
-  wl_signal_add(&xdg_popup->base->surface->events.commit, &popup->commit);
-
-  popup->destroy.notify = xdg_popup_destroy;
-  wl_signal_add(&xdg_popup->events.destroy, &popup->destroy);
+  popup->surface_commit_.init(&xdg_popup->base->surface->events.commit);
+  popup->surface_commit_handle_ = popup->surface_commit_.request(*popup, &tinywl_popup::surface_commit);
+  popup->xdg_popup_destroy_.init(&xdg_popup->events.destroy);
+  popup->xdg_popup_destroy_handle_ = popup->xdg_popup_destroy_.request(*popup, &tinywl_popup::xdg_popup_destroy);
 }
 
 int main(int argc, char *argv[]) {
@@ -1106,7 +1155,6 @@ int main(int argc, char *argv[]) {
    * used for application windows. For more detail on shells, refer to
    * https://drewdevault.com/2018/07/29/Wayland-shells.html.
    */
-  wl_list_init(&server.toplevels);
   server.xdg_shell = wlr_xdg_shell_create(server.wl_display, 3);
 
   // Initialize the server.xdg_shell_new_toplevel_ listener.
