@@ -6,8 +6,8 @@
 //
 //   struct wlr_XYZ {
 //     struct {
-//       wlr_signal destroy;
-//       wlr_signal new_input;
+//       wl_signal destroy;
+//       wl_signal new_input;
 //     } events;
 //   };
 //

@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
             // Terminate the sequence.
             std::cout << ");\n";
           }
-          std::cout << "DECLARE_LISTENERS(" << id1 << ", ";
+          std::cout << "__WAYARC_DECLARE_LISTENERS(" << id1 << ", ";
         }
         else if (i == 1)
         {
@@ -132,8 +132,8 @@ int main(int argc, char* argv[])
       std::cout << "\n";
       std::cout << "} // namespace listener\n";
       std::cout << "\n";
-      std::cout << "#undef DECLARE_LISTENER\n";
-      std::cout << "#undef DECLARE_LISTENERS\n";
+      std::cout << "#undef __WAYARC_DECLARE_LISTENER\n";
+      std::cout << "#undef __WAYARC_DECLARE_LISTENERS\n";
       break;
     }
     else if (i == 0)
