@@ -209,15 +209,40 @@ struct tinywl_server
   struct wl_list outputs;
 };
 
-struct tinywl_output
+class TinywlOutput
 {
+ public:
   struct wl_list link;
-  struct tinywl_server *server;
+
+ private:
+  struct tinywl_server* server_;
 
   struct wlr_output* wlr_output_;
   WA_DECLARE_EVENT_SIMPLE_MEMBERS(output, frame);
   WA_DECLARE_EVENT_SIMPLE_MEMBERS(output, request_state);
   WA_DECLARE_EVENT_SIMPLE_MEMBERS(output, destroy);
+
+ public:
+  TinywlOutput(struct tinywl_server* server, struct wlr_output* wlr_output) : server_(server), wlr_output_(wlr_output)
+  {
+    register_events();
+  }
+
+ private:
+  void register_events()
+  {
+    // Initialize the output_frame_ listener.
+    WA_LINK_EVENT_SERVER(output, frame, wlr_output_);
+    output_frame_handle_ = WA_REQUEST_EVENT_CALLBACK(output, frame, *this);
+
+    // Initialize the output_request_state_ listener.
+    WA_LINK_EVENT_SERVER(output, request_state, wlr_output_);
+    output_request_state_handle_ = WA_REQUEST_EVENT_CALLBACK(output, request_state, *this);
+
+    // Initialize the output_destroy_ listener.
+    WA_LINK_EVENT_SERVER(output, destroy, wlr_output_);
+    output_destroy_handle_ = WA_REQUEST_EVENT_CALLBACK(output, destroy, *this);
+  }
 };
 
 struct tinywl_popup
@@ -674,7 +699,7 @@ WA_DEFINE_EVENT_CALLBACK(tinywl_server, cursor, frame, data)
   wlr_seat_pointer_notify_frame(seat);
 }
 
-WA_DEFINE_EVENT_CALLBACK(tinywl_output, output, frame, /*not-used*/)
+WA_DEFINE_EVENT_CALLBACK(TinywlOutput, output, frame, /*not-used*/)
 {
   /* This function is called every time an output is ready to display a frame,
    * generally at the output's refresh rate (e.g. 60Hz). */
@@ -692,7 +717,7 @@ WA_DEFINE_EVENT_CALLBACK(tinywl_output, output, frame, /*not-used*/)
 #endif
 }
 
-WA_DEFINE_EVENT_CALLBACK(tinywl_output, output, request_state, event)
+WA_DEFINE_EVENT_CALLBACK(TinywlOutput, output, request_state, event)
 {
   /* This function is called when the backend requests a new state for
    * the output. For example, Wayland and X11 backends request a new mode
@@ -700,7 +725,7 @@ WA_DEFINE_EVENT_CALLBACK(tinywl_output, output, request_state, event)
   wlr_output_commit_state(wlr_output_, event->state);
 }
 
-WA_DEFINE_EVENT_CALLBACK(tinywl_output, output, destroy, /*not-used*/)
+WA_DEFINE_EVENT_CALLBACK(TinywlOutput, output, destroy, /*not-used*/)
 {
   output_frame_handle_.cancel();
   output_request_state_handle_.cancel();
@@ -737,22 +762,7 @@ WA_DEFINE_EVENT_CALLBACK(tinywl_server, backend, new_output, wlr_output)
   wlr_output_state_finish(&state);
 
   /* Allocates and configures our state for this output */
-  tinywl_output* output = new tinywl_output;
-  output->wlr_output_ = wlr_output;
-  output->server = this;
-
-  // Initialize the output_frame_ listener.
-  wlr_cursor* cursor = nullptr;
-  output->WA_LINK_EVENT_SERVER(output, frame, wlr_output);
-  output->output_frame_handle_ = output->WA_REQUEST_EVENT_CALLBACK(output, frame, *output);
-
-  // Initialize the output_request_state_ listener.
-  output->WA_LINK_EVENT_SERVER(output, request_state, wlr_output);
-  output->output_request_state_handle_ = output->WA_REQUEST_EVENT_CALLBACK(output, request_state, *output);
-
-  // Initialize the output_destroy_ listener.
-  output->WA_LINK_EVENT_SERVER(output, destroy, wlr_output);
-  output->output_destroy_handle_ = output->WA_REQUEST_EVENT_CALLBACK(output, destroy, *output);
+  TinywlOutput* output = new TinywlOutput(this, wlr_output);
 
   wl_list_insert(&outputs, &output->link);
 
