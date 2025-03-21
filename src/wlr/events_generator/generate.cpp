@@ -77,7 +77,7 @@ int main(int argc, char* argv[])
             // Terminate the sequence.
             std::cout << ");\n";
           }
-          std::cout << "__WAYARC_DECLARE_LISTENERS(" << id1 << ", ";
+          std::cout << "__WAYARC_DECLARE_LISTENERS(" << id1.substr(4) << ", ";
         }
         else if (i == 1)
         {
