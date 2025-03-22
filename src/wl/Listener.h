@@ -71,7 +71,7 @@ void Listener<Data>::init(wl_signal* signal_ptr)
 {
   // Only call init once.
   // Did you do a WA_LINK_EVENT_SERVER twice for the same event-server?
-  ASSERT(signal_ptr_);
+  ASSERT(signal_ptr_ == nullptr);
   signal_ptr_ = signal_ptr;
 
   listener_.notify = &Listener<Data>::callback_;
