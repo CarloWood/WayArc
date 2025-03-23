@@ -20,25 +20,9 @@ class EventClient
   std::vector<std::move_only_function<void()>> events_handle_cancels_;          // Stores one lambda per event handle that will cancel the event callback if invoked.
 
  protected:
-  // Primary template with static_assert that will always fail
+  // Alias template that forwards to the appropriate specialization.
   template<typename EVENTS_CONTAINER, auto SIGNAL_ENUM>
-  struct EventTypeHelper
-  {
-    static_assert(sizeof(EVENTS_CONTAINER) == 0, "EVENTS_CONTAINER must satisfy ConceptSpecializedEVENTS_CONTAINER");
-    // This type will never be used due to the static_assert.
-    using type = void;
-  };
-
-  // Specialization for types that satisfy the concept.
-  template<ConceptSpecializedEVENTS_CONTAINER EVENTS_CONTAINER, auto SIGNAL_ENUM>
-  struct EventTypeHelper<EVENTS_CONTAINER, SIGNAL_ENUM>
-  {
-    using type = wl::EventType<typename EVENTS_CONTAINER::wlr_events_container_type, SIGNAL_ENUM>;
-  };
-
-   // Alias template that forwards to the appropriate specialization.
-  template<typename EVENTS_CONTAINER, auto SIGNAL_ENUM>
-  using EventType = typename EventTypeHelper<EVENTS_CONTAINER, SIGNAL_ENUM>::type;
+  using EventType = wl::EventType<typename EVENTS_CONTAINER::wlr_events_container_type, SIGNAL_ENUM>;
 
   template<ConceptSpecializedEVENTS_CONTAINER EVENTS_CONTAINER, auto SIGNAL_ENUM>
   using EventInfo = wl::EventInfo<typename EVENTS_CONTAINER::wlr_events_container_type, SIGNAL_ENUM>;
