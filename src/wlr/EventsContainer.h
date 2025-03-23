@@ -29,7 +29,7 @@ typename wl::Listener<EVENT_TYPE>& EventsContainer::realize()
       [](std::unique_ptr<wl::ListenerBase> const& elem){ return dynamic_cast<wl::Listener<EVENT_TYPE>*>(elem.get()) != nullptr; });
   if (iter == listeners_.end())
   {
-    using event_info_type = wl::EventInfo<typename EVENT_TYPE::wlr_events_container_type, EVENT_TYPE::signal_enum>;
+    using event_info_type = wl::EventInfo<EVENT_TYPE::signal_enum>;
     using events_container_type = event_info_type::events_container_type;
     events_container_type* events_container = static_cast<events_container_type*>(this);
     wl_signal* signal_ptr = events_container->template get_signal_ptr<EVENT_TYPE::signal_enum>();
@@ -43,7 +43,7 @@ typename wl::Listener<EVENT_TYPE>& EventsContainer::realize()
 // Internal macros used to declare signal-name structs that declare the corresponding wl::EventType.
 
 #define __WAYARC_DECLARE_SIGNAL_HOOK(r, events_container_name, signal_name) \
-__WAYARC_NL_MACRO__  struct signal_name { using event_type = wl::EventType<struct wlr_##events_container_name, ::events::events_container_name::signal_name>; };
+__WAYARC_NL_MACRO__  struct signal_name { using event_type = wl::EventType<::events::events_container_name::signal_name>; };
 
 #define __WAYARC_DECLARE_SIGNAL_HOOKS(events_container_name, signal_names_seq) \
   BOOST_PP_SEQ_FOR_EACH(__WAYARC_DECLARE_SIGNAL_HOOK, events_container_name, signal_names_seq)
@@ -59,7 +59,7 @@ __WAYARC_NL_MACRO__  signal_name,
 // Internal macros used to generate AI_CASE_RETURN statements to print those enum class elements.
 
 #define __WAYARC_DECLARE_SIGNAL_ENUM_CASE_RETURN(r, events_container_name, signal_name) \
-__WAYARC_NL_MACRO__     AI_CASE_RETURN(signal_name);
+__WAYARC_NL_MACRO__     AI_CASE_RETURN(events_container_name::signal_name);
 
 #define __WAYARC_DECLARE_SIGNAL_ENUM_CASE_RETURNS(events_container_name, signal_names_seq) \
   BOOST_PP_SEQ_FOR_EACH(__WAYARC_DECLARE_SIGNAL_ENUM_CASE_RETURN, events_container_name, signal_names_seq)
@@ -80,7 +80,7 @@ __WAYARC_NL_MACRO__  }
 
 #define __WAYARC_DECLARE_EVENT_INFO_SPECIALIZATION(r, events_container_tuple, signal_name_data_type) \
 __WAYARC_NL_MACRO__  template<> \
-__WAYARC_NL_MACRO__  struct EventInfo<struct BOOST_PP_CAT(wlr_, BOOST_PP_TUPLE_ELEM(1, events_container_tuple)), ::events::BOOST_PP_TUPLE_ELEM(1, events_container_tuple)::BOOST_PP_TUPLE_ELEM(0, signal_name_data_type)> \
+__WAYARC_NL_MACRO__  struct EventInfo<::events::BOOST_PP_TUPLE_ELEM(1, events_container_tuple)::BOOST_PP_TUPLE_ELEM(0, signal_name_data_type)> \
 __WAYARC_NL_MACRO__  { \
 __WAYARC_NL_MACRO__    using wlr_events_container_type = struct BOOST_PP_CAT(wlr_, BOOST_PP_TUPLE_ELEM(1, events_container_tuple)); \
 __WAYARC_NL_MACRO__    static constexpr auto signal_enum = ::events::BOOST_PP_TUPLE_ELEM(1, events_container_tuple)::BOOST_PP_TUPLE_ELEM(0, signal_name_data_type); \
