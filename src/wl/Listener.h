@@ -23,10 +23,6 @@ struct ListenerBase
 template<typename EVENT_TYPE>
 class Listener : protected SignalServerListener, public events::Server<EVENT_TYPE>, public ListenerBase
 {
- public:
-  using event_type_t = EVENT_TYPE;
-  using handle_t = events::RequestHandle<event_type_t>;
-
  private:
   wl_signal* signal_ptr_{};
 

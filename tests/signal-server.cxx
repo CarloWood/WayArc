@@ -34,7 +34,7 @@ struct tinywl_server
   new_input_listener_t new_input_;
 
   // Callback for new_input_.
-  void new_input(new_input_listener_t::event_type_t const& device)
+  void new_input(wl_xyz_type const& device)
   {
     DoutEntering(dc::notice, "tinywl_server::new_input(" << device << ")");
   }
