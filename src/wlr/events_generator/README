@@ -39,5 +39,5 @@ Thus, after (re)generating renamer.out, run:
   g++ -std=c++20 analyzer.cpp -o analyzer
   ./analyzer $WLROOTS_BUILDDIR renamer.out | LC_ALL=C sort > analyzer.out
 
-The generation of events.h and listener.h is performed from custom rules
+The generation of all events related headers is performed from custom rules
 in the CMakeLists.txt of src/wlr, using this analyzer.out file.

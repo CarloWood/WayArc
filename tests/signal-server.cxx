@@ -6,7 +6,13 @@
 
 extern "C" {
 struct wl_xyz_type {
+  using data_type = wl_xyz_type;
+  static constexpr bool one_shot = true;
+
   int magic_{0x123456};
+
+  wl_xyz_type() { }
+  wl_xyz_type(data_type*) { }
 };
 
 // wl_data_type

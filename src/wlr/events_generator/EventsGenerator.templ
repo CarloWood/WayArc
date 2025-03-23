@@ -1,0 +1,71 @@
+#pragma once
+
+#include "wl/EventType.h"
+#include "wl/Listener.h"
+#include "wlr/EventsContainer.h"
+#include <boost/preprocessor/seq/for_each.hpp>
+#ifdef CWDEBUG
+#include "cwds/debug.h"
+#endif
+
+namespace events {
+
+enum class @EVENTS_CONTAINER_NAME@
+{
+__WAYARC_DECLARE_SIGNAL_ENUMS(@EVENTS_CONTAINER_NAME@, @SIGNAL_NAMES_SEQ@)
+};
+
+#ifdef CWDEBUG
+inline char const* to_string(@EVENTS_CONTAINER_NAME@ signal_enum)
+{
+  using enum @EVENTS_CONTAINER_NAME@;
+  switch (signal_enum)
+  {
+__WAYARC_DECLARE_SIGNAL_ENUM_CASE_RETURNS(@EVENTS_CONTAINER_NAME@, @SIGNAL_NAMES_SEQ@)
+  }
+  AI_NEVER_REACHED
+}
+#endif
+
+} // namespace events
+
+namespace wlr {
+
+// Wrapper around a struct wlr_@EVENTS_CONTAINER_NAME@*,
+// with type definitions that specify the available signals that it provides.
+class @EVENTS_CONTAINER@ : public EventsContainer
+{
+ public:
+  using wlr_events_container_type = struct wlr_@EVENTS_CONTAINER_NAME@;
+
+ private:
+  wlr_events_container_type* ptr_{};
+
+ public:
+  __WAYARC_DECLARE_SIGNAL_HOOKS(@EVENTS_CONTAINER_NAME@, @SIGNAL_NAMES_SEQ@);
+
+  template<events::@EVENTS_CONTAINER_NAME@ signal_enum>
+  wl_signal* get_signal_ptr() const;
+
+ public:
+  // Constructors.
+  @EVENTS_CONTAINER@() = default;
+  @EVENTS_CONTAINER@(wlr_events_container_type* ptr) : ptr_(ptr) { }
+
+  // Accessor.
+  wlr_events_container_type* ptr() const { return ptr_; }
+
+  // Automatic conversion.
+  operator wlr_events_container_type*() const { return ptr_; }
+  wlr_events_container_type* operator->() const { return ptr_; }
+};
+
+__WAYARC_DECLARE_GET_SIGNAL_PTR_SPECIALIZATIONS(@EVENTS_CONTAINER@, @EVENTS_CONTAINER_NAME@, @SIGNAL_NAME_DATA_TYPE_SEQ@)
+
+} // namespace wlr
+
+namespace wl {
+
+__WAYARC_DECLARE_EVENT_INFO_SPECIALIZATIONS(@EVENTS_CONTAINER@, @EVENTS_CONTAINER_NAME@, @SIGNAL_NAME_DATA_TYPE_SEQ@)
+
+} // namespace wl
