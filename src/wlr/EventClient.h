@@ -40,22 +40,6 @@ class EventClient
     add_event_handle_cancel([handle = std::move(handle)]() mutable { handle.cancel(); });
   }
 
-  // Non-const client.
-  template<typename WLR_EVENTS_CONTAINER, typename EVENT_TYPE, class CLIENT, typename... Args>
-  /*[[nodiscard]]*/
-  void register_event(WLR_EVENTS_CONTAINER* wlr_events_container, void (CLIENT::*cb)(EVENT_TYPE const&, Args...), Args... args)
-  {
-    DoutEntering(dc::events,
-        "EventClient::register_event(" <<
-            libcwd::type_info_of<WLR_EVENTS_CONTAINER*>().demangled_name() << " [" << (void*)wlr_events_container << "], " <<
-            "void (" << libcwd::type_info_of<CLIENT>().demangled_name() << "::*)(" << wl::print_type<EVENT_TYPE>() << " (with EventData " <<
-              libcwd::type_info_of<typename wl::EventInfo<EVENT_TYPE::signal_enum>::event_data_type>().demangled_name() << ") const&" <<
-              ("" << ... << (", " << libcwd::type_info_of<Args>().demangled_name())) << ")" <<
-            ("" << ... << (", ", args)) <<
-        ")");
-    // FIXME: implement
-  }
-
  protected:
   // Call this from the destructor of the most-derived class.
   void cancel_events()

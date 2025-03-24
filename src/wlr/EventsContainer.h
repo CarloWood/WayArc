@@ -3,6 +3,7 @@
 #include "wl/Listener.h"
 #include <memory>
 #include <list>
+#include "debug.h"
 
 namespace wlr {
 
@@ -70,6 +71,7 @@ __WAYARC_NL_MACRO__     AI_CASE_RETURN(events_container_name::signal_name);
 __WAYARC_NL_MACRO__  template<> \
 __WAYARC_NL_MACRO__  wl_signal* BOOST_PP_TUPLE_ELEM(0, events_container_tuple)::get_signal_ptr<::events::BOOST_PP_TUPLE_ELEM(1, events_container_tuple)::BOOST_PP_TUPLE_ELEM(0, signal_name_data_type)>() const \
 __WAYARC_NL_MACRO__  { \
+__WAYARC_NL_MACRO__    ASSERT(ptr_); /* The wlr::BOOST_PP_TUPLE_ELEM(0, events_container_tuple) wasn't initialized. */ \
 __WAYARC_NL_MACRO__    return &ptr_->events.BOOST_PP_TUPLE_ELEM(0, signal_name_data_type); \
 __WAYARC_NL_MACRO__  }
 

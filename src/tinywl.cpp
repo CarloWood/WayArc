@@ -178,12 +178,15 @@ class TinywlToplevel : public wlr::EventClient
   void xdg_toplevel_request_resize(wlr::XdgToplevel::request_resize::event_type const& event_type);
   void xdg_toplevel_request_maximize(wlr::XdgToplevel::request_maximize::event_type const& event_type);
   void xdg_toplevel_request_fullscreen(wlr::XdgToplevel::request_fullscreen::event_type const& event_type);
-  void surface_map(wlr::Surface::map::event_type const& event_type);               // xdg_toplevel_->base->surface
-  void surface_unmap(wlr::Surface::unmap::event_type const& event_type);           // idem
-  void surface_commit(wlr::Surface::commit::event_type const& event_type);         // idem
+
+  wlr::Surface wlr_xdg_toplevel_base_surface_;                                  // wlr_xdg_toplevel_->base->surface
+  void surface_map(wlr::Surface::map::event_type const& event_type);
+  void surface_unmap(wlr::Surface::unmap::event_type const& event_type);
+  void surface_commit(wlr::Surface::commit::event_type const& event_type);
 
  public:
-  TinywlToplevel(TinywlServer* server, struct wlr_xdg_toplevel* wlr_xdg_toplevel) : server_(server), wlr_xdg_toplevel_(wlr_xdg_toplevel)
+  TinywlToplevel(TinywlServer* server, struct wlr_xdg_toplevel* wlr_xdg_toplevel) :
+    server_(server), wlr_xdg_toplevel_(wlr_xdg_toplevel), wlr_xdg_toplevel_base_surface_(wlr_xdg_toplevel_->base->surface)
   {
     register_events();
   }
@@ -205,9 +208,9 @@ class TinywlToplevel : public wlr::EventClient
     register_event(wlr_xdg_toplevel_, &TinywlToplevel::xdg_toplevel_request_resize);
     register_event(wlr_xdg_toplevel_, &TinywlToplevel::xdg_toplevel_request_maximize);
     register_event(wlr_xdg_toplevel_, &TinywlToplevel::xdg_toplevel_request_fullscreen);
-    register_event(wlr_xdg_toplevel_->base->surface, &TinywlToplevel::surface_map);
-    register_event(wlr_xdg_toplevel_->base->surface, &TinywlToplevel::surface_unmap);
-    register_event(wlr_xdg_toplevel_->base->surface, &TinywlToplevel::surface_commit);
+    register_event(wlr_xdg_toplevel_base_surface_, &TinywlToplevel::surface_map);
+    register_event(wlr_xdg_toplevel_base_surface_, &TinywlToplevel::surface_unmap);
+    register_event(wlr_xdg_toplevel_base_surface_, &TinywlToplevel::surface_commit);
   }
 };
 
@@ -513,11 +516,13 @@ class TinywlPopup : public wlr::EventClient
 {
  private:
   wlr::XdgPopup wlr_xdg_popup_;
-  void surface_commit(wlr::Surface::commit::event_type const& event_type);
   void xdg_popup_destroy(wlr::XdgPopup::destroy::event_type const& event_type);
 
+  wlr::Surface wlr_xdg_popup_base_surface_;                     // wlr_xdg_popup_->base->surface
+  void surface_commit(wlr::Surface::commit::event_type const& event_type);
+
  public:
-  TinywlPopup(struct wlr_xdg_popup* wlr_xdg_popup) : wlr_xdg_popup_(wlr_xdg_popup)
+  TinywlPopup(struct wlr_xdg_popup* wlr_xdg_popup) : wlr_xdg_popup_(wlr_xdg_popup), wlr_xdg_popup_base_surface_(wlr_xdg_popup_->base->surface)
   {
     register_events();
   }
@@ -530,8 +535,8 @@ class TinywlPopup : public wlr::EventClient
  private:
   void register_events()
   {
-    register_event(wlr_xdg_popup_->base->surface, &TinywlPopup::surface_commit);
     register_event(wlr_xdg_popup_, &TinywlPopup::xdg_popup_destroy);
+    register_event(wlr_xdg_popup_base_surface_, &TinywlPopup::surface_commit);
   }
 };
 
@@ -546,12 +551,15 @@ class TinywlKeyboard : public wlr::EventClient
   wlr::Keyboard wlr_keyboard_;
   void keyboard_modifiers(wlr::Keyboard::modifiers::event_type const& event_type);
   void keyboard_key(wlr::Keyboard::key::event_type const& event_type);
+
+  wlr::InputDevice wlr_input_device_;
   void input_device_destroy(wlr::InputDevice::destroy::event_type const& event_type);
 
  public:
-  TinywlKeyboard(TinywlServer* server, struct wlr_keyboard* wlr_keyboard, struct wlr_input_device* device) : server_(server), wlr_keyboard_(wlr_keyboard)
+  TinywlKeyboard(TinywlServer* server, struct wlr_keyboard* wlr_keyboard) :
+    server_(server), wlr_keyboard_(wlr_keyboard), wlr_input_device_(&wlr_keyboard->base)
   {
-    register_events(device);
+    register_events();
   }
 
   ~TinywlKeyboard()
@@ -561,11 +569,11 @@ class TinywlKeyboard : public wlr::EventClient
   }
 
  public:
-  void register_events(struct wlr_input_device* device)
+  void register_events()
   {
     register_event(wlr_keyboard_, &TinywlKeyboard::keyboard_modifiers);
     register_event(wlr_keyboard_, &TinywlKeyboard::keyboard_key);
-    register_event(device, &TinywlKeyboard::input_device_destroy);
+    register_event(wlr_input_device_, &TinywlKeyboard::input_device_destroy);
   }
 };
 
@@ -697,7 +705,7 @@ void TinywlKeyboard::input_device_destroy(wlr::InputDevice::destroy::event_type 
 void TinywlServer::new_keyboard(struct wlr_input_device* device) {
 	struct wlr_keyboard* wlr_keyboard = wlr_keyboard_from_input_device(device);
 
-	TinywlKeyboard* keyboard = new TinywlKeyboard(this, wlr_keyboard, device);
+	TinywlKeyboard* keyboard = new TinywlKeyboard(this, wlr_keyboard);
 
 	/* We need to prepare an XKB keymap and assign it to the keyboard. This
 	 * assumes the defaults (e.g. layout = "us"). */
