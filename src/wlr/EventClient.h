@@ -6,6 +6,11 @@
 #include <functional>
 #include <utility>
 #include "debug.h"
+#ifdef CWDEBUG
+#include "wlr/Cursor.h"
+#include "wlr/Output.h"
+#include <type_traits>
+#endif
 
 namespace wlr {
 
@@ -17,9 +22,10 @@ class EventClient
  public:
   // Non-const client.
   template<typename EVENTS_CONTAINER, typename EVENT_TYPE, class CLIENT, typename... Args>
-    requires requires { std::is_same_v<typename EVENTS_CONTAINER::wlr_events_container_type, typename wl::EventInfo<EVENT_TYPE::signal_enum>::wlr_events_container_type>; }
   void register_event(EVENTS_CONTAINER& events_container, void (CLIENT::*cb)(EVENT_TYPE const&, Args...), Args... args)
   {
+    static_assert(std::is_same_v<typename EVENTS_CONTAINER::wlr_events_container_type, typename wl::EventInfo<EVENT_TYPE::signal_enum>::wlr_events_container_type>,
+        "Mismatch between wlr_events_container_type of passed EVENTS_CONTAINER and the EVENT_TYPE of the callback function!");
     DoutEntering(dc::events,
         "EventClient::register_event(" <<
             libcwd::type_info_of<EVENTS_CONTAINER&>().demangled_name() << " [@" << (void*)&events_container << "], " <<
@@ -35,6 +41,15 @@ class EventClient
     CLIENT& client = static_cast<CLIENT&>(*this);
     // Request to be notified by a call to client.cb() when the event happens.
     events::RequestHandle<EVENT_TYPE> handle = listener.request(client, cb);
+#ifdef CWDEBUG
+    if constexpr (std::is_same_v<std::remove_cvref_t<decltype(EVENT_TYPE::signal_enum)>, events::cursor>)
+      handle.debug_set_silent();
+    else if constexpr (std::is_same_v<std::remove_cvref_t<decltype(EVENT_TYPE::signal_enum)>, events::output>)
+    {
+      if (EVENT_TYPE::signal_enum == events::output::frame)
+        handle.debug_set_silent();
+    }
+#endif
     // The handle returned by `request` is added to the client; the destructor of
     // the client should call `cancel_events()`, which calls `cancel()` on all added handles.
     add_event_handle_cancel([handle = std::move(handle)]() mutable { handle.cancel(); });
