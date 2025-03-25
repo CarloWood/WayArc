@@ -12,6 +12,9 @@
 
 // wlroots doesn't support inclusion from C++?!
 extern "C" {
+#define static
+#include <wlr/types/wlr_scene.h>
+#undef static
 #include <wlr/backend.h>
 #include <wlr/render/allocator.h>
 #include <wlr/render/wlr_renderer.h>
@@ -23,7 +26,6 @@ extern "C" {
 #include <wlr/types/wlr_output.h>
 #include <wlr/types/wlr_output_layout.h>
 #include <wlr/types/wlr_pointer.h>
-//#include <wlr/types/wlr_scene.h>
 #include <wlr/types/wlr_seat.h>
 #include <wlr/types/wlr_subcompositor.h>
 #include <wlr/types/wlr_xcursor_manager.h>
@@ -169,7 +171,8 @@ class TinywlToplevel : public wlr::EventClient
   TinywlServer* server_;
 
  private:
-//      struct wlr_scene_tree* scene_tree;
+ public: // FIXME
+  struct wlr_scene_tree* scene_tree_;
 
  public:
   wlr::XdgToplevel wlr_xdg_toplevel_;
@@ -225,8 +228,11 @@ class TinywlServer : public wlr::EventClient
 
   struct wlr_renderer* renderer_{};
   struct wlr_allocator* allocator_{};
-  wlr::Scene scene_;
+  //wlr::Scene scene_;
+ public: // FIXME
+  wlr_scene* scene_;
   struct wlr_scene_output_layout* scene_layout_;
+ private:
 
   wlr::XdgShell wlr_xdg_shell_;
   void xdg_shell_new_toplevel(wlr::XdgShell::new_toplevel::event_type const& event_type);
@@ -301,9 +307,7 @@ class TinywlServer : public wlr::EventClient
     if (wl_display_)
       wl_display_destroy_clients(wl_display_);
     // No need to remove signal listeners with wl::Listener - they clean up automatically.
-#if 0 // FIXME: we don't have server.scene_
-    wlr_scene_node_destroy(&server.scene_->tree.node);
-#endif
+    wlr_scene_node_destroy(&scene_->tree.node);
     wlr_xcursor_manager_destroy(cursor_mgr_);
     if (wlr_cursor_)
       wlr_cursor_destroy(wlr_cursor_);
@@ -397,15 +401,13 @@ class TinywlServer : public wlr::EventClient
 
   void initialize_scene()
   {
-    // Initialize the scene graph. This is a wlroots abstraction that handles all
+    // Create a scene graph. This is a wlroots abstraction that handles all
     // rendering and damage tracking. All the compositor author needs to do
     // is add things that should be rendered to the scene graph at the proper
     // positions and then call wlr_scene_output_commit() to render a frame if
     // necessary.
-    scene_.init();
-#if 0 // FIXME: we don't have scene_
+    scene_ = wlr_scene_create();
     scene_layout_ = wlr_scene_attach_output_layout(scene_, output_layout_);
-#endif
   }
 
   void initialize_xdg_shell()
@@ -602,9 +604,7 @@ void TinywlToplevel::focus()
 	}
 	struct wlr_keyboard* keyboard = wlr_seat_get_keyboard(seat);
 	// Move the this toplevel to the front.
-#if 0 // FIXME: we don't have `scene_tree`
-	wlr_scene_node_raise_to_top(&scene_tree->node);
-#endif
+	wlr_scene_node_raise_to_top(&scene_tree_->node);
         auto toplevel_iter = std::find(server->toplevels_.begin(), server->toplevels_.end(), this);
         server->toplevels_.splice(server->toplevels_.begin(), server->toplevels_, toplevel_iter);
 
@@ -784,7 +784,6 @@ TinywlToplevel* TinywlServer::desktop_toplevel_at(double lx, double ly, struct w
 	/* This returns the topmost node in the scene at the given layout coords.
 	 * We only care about surface nodes as we are specifically looking for a
 	 * surface in the surface tree of a TinywlToplevel. */
-#if 0   // FIXME: we don't have `scene_`
 	struct wlr_scene_node* node = wlr_scene_node_at(&scene_->tree.node, lx, ly, sx, sy);
 	if (node == NULL || node->type != WLR_SCENE_NODE_BUFFER) {
 		return NULL;
@@ -803,10 +802,7 @@ TinywlToplevel* TinywlServer::desktop_toplevel_at(double lx, double ly, struct w
 	while (tree != NULL && tree->node.data == NULL) {
 		tree = tree->node.parent;
 	}
-	return tree->node.data;
-#else
-        return nullptr;
-#endif
+	return static_cast<TinywlToplevel*>(tree->node.data);
 }
 
 void TinywlServer::reset_cursor_mode() {
@@ -819,11 +815,9 @@ void TinywlServer::process_cursor_move()
 {
 	/* Move the grabbed toplevel to the new position. */
 	TinywlToplevel* toplevel = grabbed_toplevel_;
-#if 0 // FIXME: we don't have `toplevel->scene_tree`
-	wlr_scene_node_set_position(&toplevel->scene_tree->node,
+	wlr_scene_node_set_position(&toplevel->scene_tree_->node,
 		wlr_cursor_->x - grab_x_,
 		wlr_cursor_->y - grab_y_);
-#endif
 }
 
 void TinywlServer::process_cursor_resize() {
@@ -869,10 +863,8 @@ void TinywlServer::process_cursor_resize() {
 	}
 
 	struct wlr_box* geo_box = &toplevel->wlr_xdg_toplevel_->base->geometry;
-#if 0 // FIXME: we don't have `toplevel->scene_tree`
-	wlr_scene_node_set_position(&toplevel->scene_tree->node,
+	wlr_scene_node_set_position(&toplevel->scene_tree_->node,
 		new_left - geo_box->x, new_top - geo_box->y);
-#endif
 
 	int new_width = new_right - new_left;
 	int new_height = new_bottom - new_top;
@@ -990,8 +982,7 @@ void TinywlOutput::output_frame(wlr::Output::frame::event_type const& UNUSED_ARG
 {
   /* This function is called every time an output is ready to display a frame,
    * generally at the output's refresh rate (e.g. 60Hz). */
-#if 0 // FIXME: we don't have `server_->scene`.
-  struct wlr_scene* scene = server_->scene;
+  struct wlr_scene* scene = server_->scene_;
 
   struct wlr_scene_output* scene_output = wlr_scene_get_scene_output(scene, wlr_output_);
 
@@ -1001,7 +992,6 @@ void TinywlOutput::output_frame(wlr::Output::frame::event_type const& UNUSED_ARG
   struct timespec now;
   clock_gettime(CLOCK_MONOTONIC, &now);
   wlr_scene_output_send_frame_done(scene_output, &now);
-#endif
 }
 
 void TinywlOutput::output_request_state(wlr::Output::request_state::event_type const& output_event_request_state)
@@ -1060,10 +1050,8 @@ void TinywlServer::backend_new_output(wlr::Backend::new_output::event_type const
    * output (such as DPI, scale factor, manufacturer, etc).
    */
   struct wlr_output_layout_output* l_output = wlr_output_layout_add_auto(output_layout_, wlr_output);
-#if 0 // FIXME: we don't have server->scene.
-  struct wlr_scene_output* scene_output = wlr_scene_output_create(server->scene, wlr_output);
-  wlr_scene_output_layout_add_output(server->scene_layout_, l_output, scene_output);
-#endif
+  struct wlr_scene_output* scene_output = wlr_scene_output_create(scene_, wlr_output);
+  wlr_scene_output_layout_add_output(scene_layout_, l_output, scene_output);
 }
 
 /* The static functions were replaced by member functions above */
@@ -1112,19 +1100,18 @@ void TinywlToplevel::begin_interactive(enum tinywl_cursor_mode mode, uint32_t ed
   server->grabbed_toplevel_ = this;
   server->cursor_mode_ = mode;
 
-#if 0 // FIXME: we don't have `scene_tree_`.
   if (mode == TINYWL_CURSOR_MOVE) {
-    server->grab_x_ = server->cursor->x - scene_tree_->node.x;
-    server->grab_y_ = server->cursor->y - scene_tree_->node.y;
+    server->grab_x_ = server->wlr_cursor_->x - scene_tree_->node.x;
+    server->grab_y_ = server->wlr_cursor_->y - scene_tree_->node.y;
   } else {
-    struct wlr_box* geo_box = &xdg_toplevel_->base->geometry;
+    struct wlr_box* geo_box = &wlr_xdg_toplevel_->base->geometry;
 
     double border_x = (scene_tree_->node.x + geo_box->x) +
       ((edges & WLR_EDGE_RIGHT) ? geo_box->width : 0);
     double border_y = (scene_tree_->node.y + geo_box->y) +
       ((edges & WLR_EDGE_BOTTOM) ? geo_box->height : 0);
-    server->grab_x_ = server->cursor->x - border_x;
-    server->grab_y_ = server->cursor->y - border_y;
+    server->grab_x_ = server->wlr_cursor_->x - border_x;
+    server->grab_y_ = server->wlr_cursor_->y - border_y;
 
     server->grab_geobox_ = *geo_box;
     server->grab_geobox_.x += scene_tree_->node.x;
@@ -1132,7 +1119,6 @@ void TinywlToplevel::begin_interactive(enum tinywl_cursor_mode mode, uint32_t ed
 
     server->resize_edges_ = edges;
   }
-#endif
 }
 
 void TinywlToplevel::xdg_toplevel_request_move(wlr::XdgToplevel::request_move::event_type const& UNUSED_ARG(event_type))
@@ -1180,12 +1166,10 @@ void TinywlServer::xdg_shell_new_toplevel(wlr::XdgShell::new_toplevel::event_typ
 {
   /* Allocate a TinywlToplevel for this surface */
   TinywlToplevel* toplevel = new TinywlToplevel(this, xdg_toplevel);
-#if 0 // FIXME
-  toplevel->scene_tree =
-          wlr_scene_xdg_surface_create(&toplevel->server->scene->tree, xdg_toplevel->base);
-  toplevel->scene_tree->node.data = toplevel;
-  xdg_toplevel->base->data = toplevel->scene_tree;
-#endif
+  toplevel->scene_tree_ =
+          wlr_scene_xdg_surface_create(&toplevel->server_->scene_->tree, xdg_toplevel->base);
+  toplevel->scene_tree_->node.data = toplevel;
+  xdg_toplevel->base->data = toplevel->scene_tree_;
 }
 
 /* Called when a new surface state is committed. */
@@ -1219,10 +1203,8 @@ void TinywlServer::xdg_shell_new_popup(wlr::XdgShell::new_popup::event_type cons
    * scene node. */
   struct wlr_xdg_surface* parent = wlr_xdg_surface_try_from_wlr_surface(xdg_popup->parent);
   assert(parent != NULL);
-#if 0 // FIXME
   struct wlr_scene_tree *parent_tree = (struct wlr_scene_tree *)parent->data;
   xdg_popup->base->data = wlr_scene_xdg_surface_create(parent_tree, xdg_popup->base);
-#endif
 }
 
 int main(int argc, char *argv[])
