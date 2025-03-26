@@ -7,7 +7,9 @@
 #include <utility>
 #include "debug.h"
 #ifdef CWDEBUG
-#include "wlr/Cursor.h"
+// Forward declare events::cursor.
+namespace events { enum class cursor; }
+// Unfortunately we can't forward declare events::output::frame.
 #include "wlr/Output.h"
 #include <type_traits>
 #endif
@@ -18,6 +20,7 @@ class EventClient
 {
  private:
   std::vector<std::move_only_function<void()>> events_handle_cancels_;          // Stores one lambda per event handle that will cancel the event callback if invoked.
+  std::vector<EventsContainer*> registered_event_containers_;                   // A list of EventsContainer objects for which register_event(events_container, ...) was called.
 
  public:
   // Non-const client.
@@ -35,6 +38,11 @@ class EventClient
             ("" << ... << (", ", args)) <<
         ")");
 
+    // Remember all events_container's that we were being called with.
+    auto iter = std::find(registered_event_containers_.begin(), registered_event_containers_.end(), static_cast<EventsContainer*>(&events_container));
+    if (iter == registered_event_containers_.end())
+      registered_event_containers_.push_back(&events_container);
+
     // Find or create the wl::Listener object associated with this event type.
     auto& listener = events_container.template realize<EVENT_TYPE>();
     // The client is derived from this object.
@@ -42,6 +50,7 @@ class EventClient
     // Request to be notified by a call to client.cb() when the event happens.
     events::RequestHandle<EVENT_TYPE> handle = listener.request(client, cb);
 #ifdef CWDEBUG
+    // Turn off debug output for callback that are called very frequently.
     if constexpr (std::is_same_v<std::remove_cvref_t<decltype(EVENT_TYPE::signal_enum)>, events::cursor>)
       handle.debug_set_silent();
     else if constexpr (std::is_same_v<std::remove_cvref_t<decltype(EVENT_TYPE::signal_enum)>, events::output>)
@@ -61,6 +70,8 @@ class EventClient
   {
     for (auto& event_handle_cancel : events_handle_cancels_)
       event_handle_cancel();
+    for (EventsContainer* event_container : registered_event_containers_)
+      event_container->destroy_listeners();
   }
 
   void add_event_handle_cancel(std::move_only_function<void()>&& event_handle_cancel)

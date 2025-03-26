@@ -6,6 +6,7 @@
 #include "debug.h"
 
 namespace wlr {
+class EventClient;
 
 // Base class for event containers.
 //
@@ -18,6 +19,13 @@ class EventsContainer
  public:
   template<typename EVENT_TYPE>
   typename wl::Listener<EVENT_TYPE>& realize();
+
+ protected:
+  friend class EventClient;
+  void destroy_listeners()
+  {
+    listeners_.clear();
+  }
 };
 
 // Return a reference to the associated wl::Listener<EVENT_TYPE> of this EVENT_TYPE, creating it if it doesn't already exist.

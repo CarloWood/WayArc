@@ -300,6 +300,9 @@ class TinywlServer : public wlr::EventClient
     }
   }
 
+  // Can't move this because we're storing pointers to EventClient's that are members of this object.
+  TinywlServer(TinywlServer&&) = delete;
+
   ~TinywlServer()
   {
     cancel_events();
