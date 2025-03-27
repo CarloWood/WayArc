@@ -1,9 +1,5 @@
 #pragma once
 
-#define NAMESPACE_DEBUG debug
-#define NAMESPACE_DEBUG_START namespace debug {
-#define NAMESPACE_DEBUG_END }
-
 #include "cwds/debug.h"
 
 #ifdef CWDEBUG
@@ -29,5 +25,12 @@ using utils::QuotedList;
 using utils::has_print_on::operator<<;
 
 #endif // HAVE_UTILS_CONFIG_H
+
+namespace debug {
+
+// Initialize debugging code. Must be called at the very start of main().
+void init();
+
+} // namespace debug
 
 #endif // CWDEBUG

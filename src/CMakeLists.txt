@@ -59,6 +59,10 @@ target_link_libraries(tinywl++
     PkgConfig::WaylandDeps
 )
 
+if (OptionEnableLibcwd)
+  target_sources(tinywl++ PRIVATE logging.cxx)
+endif ()
+
 # Required define when using the unstable (git) version of wlroots.
 target_compile_definitions(tinywl++ PUBLIC WLR_USE_UNSTABLE)
 
@@ -72,6 +76,11 @@ target_include_directories(tinywl++
 # WayArc
 
 add_executable(WayArc WayArc.cxx)
+
+if (OptionEnableLibcwd)
+  target_sources(WayArc PRIVATE logging.cxx)
+endif ()
+
 add_dependencies(WayArc xdg-shell-protocol generated-events-headers)
 target_link_libraries(WayArc
   PRIVATE

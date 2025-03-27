@@ -49,6 +49,9 @@ endif ()
 #==============================================================================
 # CONFIG FILES
 
+# Tell cwds that we want to use another namespace.
+set(NamespaceDebug debug_cwds)
+
 # Tell cwds/sys.h that we have a config.h.
 #add_definitions(-DHAVE_CONFIG_H)
 #include_directories(${top_objdir})

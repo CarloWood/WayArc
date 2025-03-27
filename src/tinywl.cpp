@@ -1212,9 +1212,8 @@ void TinywlServer::xdg_shell_new_popup(wlr::XdgShell::new_popup::event_type cons
 
 int main(int argc, char *argv[])
 {
-  Debug(NAMESPACE_DEBUG::init());
+  Debug(debug::init());
 
-  wlr_log_init(WLR_DEBUG, NULL);
   char const* startup_cmd = nullptr;
 
   int c;

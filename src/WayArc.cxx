@@ -3,7 +3,7 @@
 
 int main()
 {
-  Debug(NAMESPACE_DEBUG::init());
+  Debug(debug::init());
 
   Dout(dc::notice, "This is WayArc!");
 }
