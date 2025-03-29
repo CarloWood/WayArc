@@ -11,6 +11,7 @@
 namespace events { enum class cursor; }
 // Unfortunately we can't forward declare events::output::frame.
 #include "wlr/Output.h"
+#include "debug_ostream_operators.h"
 #include <type_traits>
 #endif
 
@@ -30,13 +31,10 @@ class EventClient
     static_assert(std::is_same_v<typename EVENTS_CONTAINER::wlr_events_container_type, typename wl::EventInfo<EVENT_TYPE::signal_enum>::wlr_events_container_type>,
         "Mismatch between wlr_events_container_type of passed EVENTS_CONTAINER and the EVENT_TYPE of the callback function!");
     DoutEntering(dc::events,
-        "EventClient::register_event(" <<
-            libcwd::type_info_of<EVENTS_CONTAINER&>().demangled_name() << " [@" << (void*)&events_container << "], " <<
-            "void (" << libcwd::type_info_of<CLIENT>().demangled_name() << "::*)(" << wl::print_type<EVENT_TYPE>() << " (with EventData " <<
-              libcwd::type_info_of<typename wl::EventInfo<EVENT_TYPE::signal_enum>::event_data_type>().demangled_name() << ") const&" <<
-              ("" << ... << (", " << libcwd::type_info_of<Args>().demangled_name())) << ")" <<
-            ("" << ... << (", ", args)) <<
-        ")");
+        "EventClient::register_event(" << print_type<EVENTS_CONTAINER&> << " [@" << (void*)&events_container << "], " <<
+            "void (" << print_type<CLIENT> << "::*)(" << print_type<EVENT_TYPE> << " (with EventData " <<
+              print_type<typename wl::EventInfo<EVENT_TYPE::signal_enum>::event_data_type> << ") const&" <<
+              ("" << ... << (", " << print_type<Args>)) << ")" << ("" << ... << (", ", args)) << ")");
 
     // Remember all events_container's that we were being called with.
     auto iter = std::find(registered_event_containers_.begin(), registered_event_containers_.end(), static_cast<EventsContainer*>(&events_container));

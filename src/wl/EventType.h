@@ -4,6 +4,7 @@
 #ifdef CWDEBUG
 #include "utils/has_print_on.h"
 #include "utils/print_pointer.h"
+#include "debug_ostream_operators.h"    // debug::PrintType.
 #endif
 
 namespace wl {
@@ -44,14 +45,19 @@ void EventType<SIGNAL_ENUM>::print_on(std::ostream& os) const
   os << '}';
 }
 
+} // namespace wl
+
+namespace debug {
+
+// Specialization to print the type wl::EventType<SIGNAL_ENUM>.
 template<auto SIGNAL_ENUM>
-struct PrintType<EventType<SIGNAL_ENUM>>
+struct PrintType<wl::EventType<SIGNAL_ENUM>>
 {
   void print_on(std::ostream& os) const
   {
     os << "wl::EventType<" << to_string(SIGNAL_ENUM) << ">";
   }
 };
-#endif
 
-} // namespace wl
+} // namespace debug
+#endif

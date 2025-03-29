@@ -14,15 +14,20 @@ struct EventInfo
   using event_data_type = void;
 };
 
+} // namespace wl
+
 #ifdef CWDEBUG
+namespace debug {
+
+// Specialization to print type wl::EventInfo<SIGNAL_ENUM>.
 template<auto SIGNAL_ENUM>
-struct PrintType<EventInfo<SIGNAL_ENUM>>
+struct PrintType<wl::EventInfo<SIGNAL_ENUM>>
 {
   void print_on(std::ostream& os) const
   {
     os << "wl::EventInfo<" << to_string(SIGNAL_ENUM) << ">";
   }
 };
-#endif
 
-} // namespace wl
+} // namespace debug
+#endif

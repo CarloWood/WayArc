@@ -4,6 +4,9 @@
 #include <memory>
 #include <list>
 #include "debug.h"
+#ifdef CWDEBUG
+#include "debug_ostream_operators.h"
+#endif
 
 namespace wlr {
 class EventClient;
@@ -32,7 +35,7 @@ class EventsContainer
 template<typename EVENT_TYPE>
 typename wl::Listener<EVENT_TYPE>& EventsContainer::realize()
 {
-  DoutEntering(dc::events, "EventsContainer<" << wl::print_type<EVENT_TYPE>() << ">::realize()");
+  DoutEntering(dc::events, "EventsContainer<" << print_type<EVENT_TYPE> << ">::realize()");
 
   auto iter = std::find_if(listeners_.begin(), listeners_.end(),
       [](std::unique_ptr<wl::ListenerBase> const& elem){ return dynamic_cast<wl::Listener<EVENT_TYPE>*>(elem.get()) != nullptr; });
