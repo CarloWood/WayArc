@@ -557,7 +557,7 @@ class TinywlKeyboard : public wlr::EventClient
   void keyboard_modifiers(wlr::Keyboard::modifiers::event_type const& event_type);
   void keyboard_key(wlr::Keyboard::key::event_type const& event_type);
 
-  wlr::InputDevice wlr_input_device_;
+  wlr::InputDevice wlr_input_device_;   // wlr_keyboard->base
   void input_device_destroy(wlr::InputDevice::destroy::event_type const& event_type);
 
  public:
@@ -702,6 +702,7 @@ void TinywlKeyboard::keyboard_key(wlr::Keyboard::key::event_type const& event_ty
  */
 void TinywlKeyboard::input_device_destroy(wlr::InputDevice::destroy::event_type const& event_type)
 {
+  wl_list_remove(&link);
   delete this;   // FIXME
 }
 
