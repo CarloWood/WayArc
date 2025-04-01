@@ -52,6 +52,9 @@ typename wl::Listener<EVENT_TYPE>& EventsContainer::realize()
 
 } // namespace wlr
 
+// ClangFormat doesn't treat __WAYARC_NL_MACRO__ the way I want it.
+// clang-format off
+
 // Internal macros used to declare signal-name structs that declare the corresponding wl::EventType.
 
 #define __WAYARC_DECLARE_SIGNAL_HOOK(r, events_container_name, signal_name) \
@@ -100,6 +103,9 @@ __WAYARC_NL_MACRO__    static constexpr auto signal_enum = ::events::BOOST_PP_TU
 __WAYARC_NL_MACRO__    using event_data_type = BOOST_PP_TUPLE_ELEM(1, signal_name_data_type); \
 __WAYARC_NL_MACRO__    using events_container_type = wlr::BOOST_PP_TUPLE_ELEM(0, events_container_tuple); \
 __WAYARC_NL_MACRO__  };
+
+// We're done with __WAYARC_NL_MACRO__.
+// clang-format on
 
 #define __WAYARC_DECLARE_EVENT_INFO_SPECIALIZATIONS(events_container, events_container_name, signal_name_data_type_seq) \
   BOOST_PP_SEQ_FOR_EACH(__WAYARC_DECLARE_EVENT_INFO_SPECIALIZATION, (events_container, events_container_name), signal_name_data_type_seq)
