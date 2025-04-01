@@ -93,3 +93,25 @@ target_compile_definitions(WayArc PUBLIC WLR_USE_UNSTABLE)
 
 # This directory contains the generated xdg-shell-protocol.h header.
 target_include_directories(WayArc PRIVATE ${CMAKE_CURRENT_BINARY_DIR})
+
+#==============================================================================
+# cwformat
+
+find_package(LLVM REQUIRED CONFIG)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+add_executable(cwformat cwformat.cpp)
+
+# Include LLVM directories.
+target_compile_definitions(cwformat PRIVATE ${LLVM_DEFINITIONS})
+target_include_directories(cwformat PRIVATE ${LLVM_INCLUDE_DIRS})
+
+# Find the libraries that correspond to the LLVM components that we wish to use.
+llvm_map_components_to_libnames(llvm_libs support)
+# Link against LLVM libraries.
+target_link_libraries(cwformat
+  PRIVATE
+    ${llvm_libs}
+)
