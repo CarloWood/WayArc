@@ -11,8 +11,8 @@ NAMESPACE_DEBUG_CHANNELS_END
 #endif
 
 extern "C" {
-#include <stdarg.h>
 #include "wlr/util/log.h"
+#include <stdarg.h>
 
 static void log_libcwd(enum wlr_log_importance verbosity, char const* fmt, va_list args);
 } // extern "C"
@@ -46,15 +46,15 @@ static void log_libcwd(enum wlr_log_importance verbosity, char const* fmt, va_li
 
   static char const* verbosity_colors[] = {
     "",
-    "\x1B[1;31m",       // ERROR
-    "\x1B[1;34m",       // INFO
-    "\x1B[1;90m",       // DEBUG
+    "\x1B[1;31m", // ERROR
+    "\x1B[1;34m", // INFO
+    "\x1B[1;90m", // DEBUG
   };
 
   LibcwDoutScopeBegin(LIBCWD_DEBUGCHANNELS, ::libcwd::libcw_do, dc::wlroots)
-  LibcwDoutStream << verbosity_colors[c];
-  write_formatted(LibcwDoutStream, fmt, args);
-  LibcwDoutStream << "\x1B[0m";
+    LibcwDoutStream << verbosity_colors[c];
+    write_formatted(LibcwDoutStream, fmt, args);
+    LibcwDoutStream << "\x1B[0m";
   LibcwDoutScopeEnd;
 }
 

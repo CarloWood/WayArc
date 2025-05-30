@@ -70,7 +70,7 @@ void Scene::init()
   wl_list_init(&gamma_control_manager_v1_destroy.link);
   wl_list_init(&gamma_control_manager_v1_set_gamma.link);
 
-  char const* const debug_damage_options[] = { "none", "rerender", "highlight", nullptr };
+  char const* const debug_damage_options[] = {"none", "rerender", "highlight", nullptr};
 
   switch (env_parse_switch("WLR_SCENE_DEBUG_DAMAGE", debug_damage_options))
   {

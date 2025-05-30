@@ -23,10 +23,7 @@ namespace debug {
 template<auto SIGNAL_ENUM>
 struct PrintType<wl::EventInfo<SIGNAL_ENUM>>
 {
-  void print_on(std::ostream& os) const
-  {
-    os << "wl::EventInfo<" << to_string(SIGNAL_ENUM) << ">";
-  }
+  void print_on(std::ostream& os) const { os << "wl::EventInfo<" << to_string(SIGNAL_ENUM) << ">"; }
 };
 
 } // namespace debug

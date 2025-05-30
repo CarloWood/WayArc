@@ -6,6 +6,7 @@
 
 #include "utils/has_print_on.h"
 #include <utility>
+#include "debug.h"
 
 namespace debug {
 // In order to be able to write a PrintType to an ostream.

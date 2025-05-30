@@ -1,8 +1,8 @@
 #pragma once
 
 #include "wl/Listener.h"
-#include <memory>
 #include <list>
+#include <memory>
 #include "debug.h"
 #ifdef CWDEBUG
 #include "debug_ostream_operators.h"
@@ -25,10 +25,7 @@ class EventsContainer
 
  protected:
   friend class EventClient;
-  void destroy_listeners()
-  {
-    listeners_.clear();
-  }
+  void destroy_listeners() { listeners_.clear(); }
 };
 
 // Return a reference to the associated wl::Listener<EVENT_TYPE> of this EVENT_TYPE, creating it if it doesn't already exist.
@@ -38,7 +35,7 @@ typename wl::Listener<EVENT_TYPE>& EventsContainer::realize()
   DoutEntering(dc::events, "EventsContainer<" << print_type<EVENT_TYPE> << ">::realize()");
 
   auto iter = std::find_if(listeners_.begin(), listeners_.end(),
-      [](std::unique_ptr<wl::ListenerBase> const& elem){ return dynamic_cast<wl::Listener<EVENT_TYPE>*>(elem.get()) != nullptr; });
+    [](std::unique_ptr<wl::ListenerBase> const& elem) { return dynamic_cast<wl::Listener<EVENT_TYPE>*>(elem.get()) != nullptr; });
   if (iter == listeners_.end())
   {
     using event_info_type = wl::EventInfo<EVENT_TYPE::signal_enum>;

@@ -4,7 +4,7 @@
 #ifdef CWDEBUG
 #include "utils/has_print_on.h"
 #include "utils/print_pointer.h"
-#include "debug_ostream_operators.h"    // debug::PrintType.
+#include "debug_ostream_operators.h" // debug::PrintType.
 #endif
 
 namespace wl {
@@ -26,7 +26,7 @@ class EventType
   data_type* data_;
 
  public:
-  EventType(data_type* data) : data_(data) { }
+  EventType(data_type* data) : data_(data) {}
 
   data_type* operator->() const { return data_; }
   operator data_type*() const { return data_; }
@@ -53,10 +53,7 @@ namespace debug {
 template<auto SIGNAL_ENUM>
 struct PrintType<wl::EventType<SIGNAL_ENUM>>
 {
-  void print_on(std::ostream& os) const
-  {
-    os << "wl::EventType<" << to_string(SIGNAL_ENUM) << ">";
-  }
+  void print_on(std::ostream& os) const { os << "wl::EventType<" << to_string(SIGNAL_ENUM) << ">"; }
 };
 
 } // namespace debug

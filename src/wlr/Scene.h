@@ -1,14 +1,14 @@
 #pragma once
 
 extern "C" {
-#include <wlr/types/wlr_linux_dmabuf_v1.h>
 #include <wlr/types/wlr_gamma_control_v1.h>
+#include <wlr/types/wlr_linux_dmabuf_v1.h>
 #include <wlr/util/addon.h>
 } // extern "C"
 
-#include <wayland-util.h>
-#include <wayland-server-core.h>
 #include <pixman.h>
+#include <wayland-server-core.h>
+#include <wayland-util.h>
 
 namespace wlr {
 
@@ -41,8 +41,11 @@ class Scene
     Tree* parent_;
     struct wl_list link_; // wlr_scene_tree.children
     bool enabled_;
-    int x_{}, y_{};     // relative to parent_
-    struct { struct wl_signal destroy; } events_;
+    int x_{}, y_{};       // relative to parent_
+    struct
+    {
+      struct wl_signal destroy;
+    } events_;
     void* data_ = nullptr;
     struct wlr_addon_set addons_;
 
@@ -88,4 +91,3 @@ class Scene
 };
 
 } // namespace wlr
-

@@ -1,9 +1,9 @@
 #pragma once
 
 #include "wl/EventType.h"
+#include "events/Events.h"
 #include "utils/has_print_on.h"
 #include "utils/print_pointer.h"
-#include "events/Events.h"
 #include <wayland-server-core.h>
 #include <utility>
 
@@ -40,7 +40,8 @@ class Listener : protected SignalServerListener, public events::Server<EVENT_TYP
 template<typename EVENT_TYPE>
 void Listener<EVENT_TYPE>::init(wl_signal* signal_ptr)
 {
-  DoutEntering(dc::events, "Listener<" << type_info_of<EVENT_TYPE>().demangled_name() << ">::init(" << (void*)signal_ptr << ") [" << this << "]");
+  DoutEntering(
+    dc::events, "Listener<" << type_info_of<EVENT_TYPE>().demangled_name() << ">::init(" << (void*)signal_ptr << ") [" << this << "]");
 
   // Only call init once.
   // Did you do a WA_LINK_EVENT_SERVER twice for the same event-server?
@@ -57,7 +58,7 @@ Listener<EVENT_TYPE>::~Listener()
 {
   DoutEntering(dc::events, "~Listener<" << type_info_of<EVENT_TYPE>().demangled_name() << ">::~Listener() [" << this << "]");
 
-  if (listener_.link.prev != nullptr)   // Was init() called?
+  if (listener_.link.prev != nullptr) // Was init() called?
     wl_list_remove(&listener_.link);
 }
 

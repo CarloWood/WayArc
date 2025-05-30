@@ -1,9 +1,9 @@
-#include <iostream>
+#include <filesystem>
 #include <fstream>
+#include <iostream>
 #include <regex>
 #include <string>
 #include <vector>
-#include <filesystem>
 #include <string_view>
 
 struct SignalInfo
@@ -52,7 +52,7 @@ std::string count_braces(std::string const& line, ssize_t& open_brace_count)
       if (current == '/' && next == '/')
       {
         in_line_comment = true;
-        ++i;       // Skip the next character.
+        ++i; // Skip the next character.
         continue;
       }
 
@@ -173,7 +173,8 @@ void parse_string(std::string const& input, bool& saw_ampersand, bool& saw_arrow
   }
 }
 
-std::string findVariableType(std::vector<std::string> const& fileLines, int signalLine, std::string const& secondArgument, std::string const& path)
+std::string findVariableType(
+  std::vector<std::string> const& fileLines, int signalLine, std::string const& secondArgument, std::string const& path)
 {
   // If NULL, return nullptr_t.
   if (secondArgument == "NULL")
